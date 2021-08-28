@@ -1,9 +1,19 @@
 import java.io.IOException;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.HashMap;
+import java.util.List;
 
 public class Main {
 
     private static final String IMAGE_PATH = "src/images/2021-05-07-raspios-buster-armhf-lite.img";
     private static final int MBR_BYTES = 512; // MBR is in the first 512 bytes of the image
+    private static final int PARTITION_COUNT = 4;
+    private static final int PARTITION_TABLE_BYTES = 64;
+    private static final int PARTITION_BYTES = 16;
+    private static String[] mbrHexValues = {};
+    private static String[] mbrPartitionTableHexValues = {};
+    private static List<PartitionMetadata> partitionData = new ArrayList<>();
 
     /*
      * Reading MBR Partitions:
@@ -15,11 +25,49 @@ public class Main {
      *
      * */
 
-    public static void main(String[] args) {
-        run();
+    public static void main(String[] args) throws IOException {
+        getMBRHexValues();
+        splitPartitions();
+        printPartitionMetadata();
     }
 
-    private static void run() {
+    private static void getMBRHexValues() throws IOException {
+        byte[] bytes = Utils.getImageBytes(IMAGE_PATH, MBR_BYTES);
+        mbrHexValues = Utils.byteToHexArray(bytes);
+        int partitionHexValStart = MBR_BYTES - PARTITION_TABLE_BYTES - 2;
+        int partitionHexValEnd = MBR_BYTES - 2;
+        mbrPartitionTableHexValues = Arrays.copyOfRange(mbrHexValues, partitionHexValStart, partitionHexValEnd);
+    }
+
+    private static void splitPartitions() {
+        String[][] partitions = new String[4][16];
+
+        for(int c = 0; c < PARTITION_COUNT; c++) {
+            partitions[c] = Arrays.copyOfRange(mbrPartitionTableHexValues, c * PARTITION_BYTES, c * PARTITION_BYTES + PARTITION_BYTES);
+        }
+
+        for(int c = 0; c < partitions.length; c++) {
+            partitionData.add(new PartitionMetadata(partitions[c]));
+        }
+
+
+        /*for(int c = 0; c < partitions.length; c++) {
+            System.out.print("Parition " + (c + 1) + ": ");
+            for (int m = 0; m < partitions[c].length; m++) {
+                System.out.print(partitions[c][m] + ", ");
+            }
+            System.out.println();
+        }*/
+    }
+
+    private static void printPartitionMetadata() {
+        for(PartitionMetadata pmd: partitionData) {
+            System.out.println(pmd.toString());
+        }
+    }
+
+
+    /*private static void run() {
         try {
             String[] hexVals = getMBRHexValues();
             for (int i = 0; i < MBR_BYTES; i++) {
@@ -29,14 +77,14 @@ public class Main {
         } catch (Exception e) {
             System.out.println(e);
         }
-    }
+    }*/
 
 
-    private static String[] getMBRHexValues() throws IOException {
+    /*private static String[] getMBRHexValues() throws IOException {
         byte[] bytes = Utils.getImageBytes(IMAGE_PATH, MBR_BYTES);
         String[] hexVals = Utils.byteToHexArray(bytes);
         return hexVals;
-    }
+    }*/
 
 
     /*

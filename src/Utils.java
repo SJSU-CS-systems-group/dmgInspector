@@ -29,13 +29,13 @@ public class Utils {
     }
 
 
-    private static int signedByteToUnsigned(byte b) {
+    public static int signedByteToUnsigned(byte b) {
         // See https://mkyong.com/java/java-convert-bytes-to-unsigned-bytes
         return b & 0xFF;
     }
 
 
-    private static String decToHex(int dec) {
+    public static String decToHex(int dec) {
         String hexStr = Integer.toHexString(dec);
 
         if (hexStr.length() == 1) {
@@ -45,4 +45,19 @@ public class Utils {
         return hexStr;
     }
 
+    public static Integer hexToDecimal(String hex) {
+        return Integer.parseInt(hex, 16);
+    }
+
+    public static String hexArrayToLEHexString(String[] hexArray) {
+        String hexString = "";
+        for(int c = hexArray.length - 1; c >= 0; c--) {
+            hexString += hexArray[c];
+        }
+        return hexString;
+    }
+
+    public static int getPartitionSize(int startPartition, int endPartition) {
+        return 0;
+    }
 }
