@@ -6,12 +6,12 @@ import java.util.List;
 
 public class Main {
 
+    private static final String IMAGE_NAME = "2021-05-07-raspios-buster-armhf-lite.img";
     private static final String IMAGE_PATH = "src/images/2021-05-07-raspios-buster-armhf-lite.img";
     private static final int MBR_BYTES = 512; // MBR is in the first 512 bytes of the image
     private static final int PARTITION_COUNT = 4;
     private static final int PARTITION_TABLE_BYTES = 64;
     private static final int PARTITION_BYTES = 16;
-    private static String[] mbrHexValues = {};
     private static String[] mbrPartitionTableHexValues = {};
     private static List<PartitionMetadata> partitionData = new ArrayList<>();
 
@@ -26,6 +26,9 @@ public class Main {
      * */
 
     public static void main(String[] args) throws IOException {
+
+
+
         getMBRHexValues();
         splitPartitions();
         printPartitionMetadata();
@@ -33,7 +36,7 @@ public class Main {
 
     private static void getMBRHexValues() throws IOException {
         byte[] bytes = Utils.getImageBytes(IMAGE_PATH, MBR_BYTES);
-        mbrHexValues = Utils.byteToHexArray(bytes);
+        String[] mbrHexValues = Utils.byteToHexArray(bytes);
         int partitionHexValStart = MBR_BYTES - PARTITION_TABLE_BYTES - 2;
         int partitionHexValEnd = MBR_BYTES - 2;
         mbrPartitionTableHexValues = Arrays.copyOfRange(mbrHexValues, partitionHexValStart, partitionHexValEnd);
@@ -61,6 +64,7 @@ public class Main {
     }
 
     private static void printPartitionMetadata() {
+        System.out.printf("%-5s %-14s %-14s %-12s %-10s %n", "ID", "Start Sector", "End Sector", "Size", "Type");
         for(PartitionMetadata pmd: partitionData) {
             System.out.println(pmd.toString());
         }

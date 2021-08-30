@@ -3,6 +3,7 @@ import java.util.HashMap;
 
 public class PartitionMetadata {
 
+    private String partitionID;
     private String partitionType;
     private String startHead;
     private String startSector;
@@ -24,6 +25,7 @@ public class PartitionMetadata {
         startHead = partitionMetadata[1];
         startSector = partitionMetadata[2];
         startCylinder = partitionMetadata[3];
+        partitionID = partitionMetadata[4];
         partitionType = typeHexToName.get(partitionMetadata[4]);
         endHead = partitionMetadata[5];
         endSector = partitionMetadata[6];
@@ -31,9 +33,10 @@ public class PartitionMetadata {
 
         partitionStartSector = Utils.hexToDecimal(Utils.hexArrayToLEHexString(Arrays.copyOfRange(partitionMetadata, 8, 12)));
         partitionEndSector = Utils.hexToDecimal(Utils.hexArrayToLEHexString(Arrays.copyOfRange(partitionMetadata, 12, 16)));
+        partitionSize = Utils.getPartitionSize(partitionStartSector, partitionEndSector);
     }
 
     public String toString() {
-        return partitionType;
+        return String.format("%-5s %-14s %-14s %-12s %-10s %n", partitionID, partitionStartSector, partitionEndSector, (partitionSize + "M"), partitionType);
     }
 }

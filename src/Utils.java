@@ -58,6 +58,6 @@ public class Utils {
     }
 
     public static int getPartitionSize(int startPartition, int endPartition) {
-        return 0;
+        return ((endPartition - startPartition) * 512)/1000000;
     }
 }
