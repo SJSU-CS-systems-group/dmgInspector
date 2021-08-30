@@ -1,13 +1,9 @@
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.HashMap;
 import java.util.List;
 
 public class Main {
-
-    private static final String IMAGE_NAME = "2021-05-07-raspios-buster-armhf-lite.img";
-    private static final String IMAGE_PATH = "src/images/2021-05-07-raspios-buster-armhf-lite.img";
     private static final int MBR_BYTES = 512; // MBR is in the first 512 bytes of the image
     private static final int PARTITION_COUNT = 4;
     private static final int PARTITION_TABLE_BYTES = 64;
@@ -26,16 +22,16 @@ public class Main {
      * */
 
     public static void main(String[] args) throws IOException {
+        String imgPath = Utils.chooseImagePath();
+        System.out.println("Disk " + Utils.getPathFileName(imgPath) + ": [MORE INFO HERE]");
 
-
-
-        getMBRHexValues();
+        getMBRHexValues(imgPath);
         splitPartitions();
         printPartitionMetadata();
     }
 
-    private static void getMBRHexValues() throws IOException {
-        byte[] bytes = Utils.getImageBytes(IMAGE_PATH, MBR_BYTES);
+    private static void getMBRHexValues(String imgPath) throws IOException {
+        byte[] bytes = Utils.getImageBytes(imgPath, MBR_BYTES);
         String[] mbrHexValues = Utils.byteToHexArray(bytes);
         int partitionHexValStart = MBR_BYTES - PARTITION_TABLE_BYTES - 2;
         int partitionHexValEnd = MBR_BYTES - 2;
@@ -45,11 +41,11 @@ public class Main {
     private static void splitPartitions() {
         String[][] partitions = new String[4][16];
 
-        for(int c = 0; c < PARTITION_COUNT; c++) {
+        for (int c = 0; c < PARTITION_COUNT; c++) {
             partitions[c] = Arrays.copyOfRange(mbrPartitionTableHexValues, c * PARTITION_BYTES, c * PARTITION_BYTES + PARTITION_BYTES);
         }
 
-        for(int c = 0; c < partitions.length; c++) {
+        for (int c = 0; c < partitions.length; c++) {
             partitionData.add(new PartitionMetadata(partitions[c]));
         }
 
@@ -65,7 +61,7 @@ public class Main {
 
     private static void printPartitionMetadata() {
         System.out.printf("%-5s %-14s %-14s %-12s %-10s %n", "ID", "Start Sector", "End Sector", "Size", "Type");
-        for(PartitionMetadata pmd: partitionData) {
+        for (PartitionMetadata pmd : partitionData) {
             System.out.println(pmd.toString());
         }
     }
