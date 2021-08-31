@@ -22,7 +22,8 @@ public class Main {
      * */
 
     public static void main(String[] args) throws IOException {
-        String imgPath = Utils.chooseImagePath();
+        String imgPath = "src/images/partex.img";
+//        String imgPath = Utils.chooseImagePath();
         System.out.println("Disk " + Utils.getPathFileName(imgPath) + ": [MORE INFO HERE]");
 
         getMBRHexValues(imgPath);
@@ -46,21 +47,13 @@ public class Main {
         }
 
         for (int c = 0; c < partitions.length; c++) {
+//            System.out.println(Arrays.toString(partitions[c]));
             partitionData.add(new PartitionMetadata(partitions[c]));
         }
-
-
-        /*for(int c = 0; c < partitions.length; c++) {
-            System.out.print("Parition " + (c + 1) + ": ");
-            for (int m = 0; m < partitions[c].length; m++) {
-                System.out.print(partitions[c][m] + ", ");
-            }
-            System.out.println();
-        }*/
     }
 
     private static void printPartitionMetadata() {
-        System.out.printf("%-5s %-14s %-14s %-12s %-10s %n", "ID", "Start Sector", "End Sector", "Size", "Type");
+        System.out.printf("%-10s %-10s %-10s %-10s %-10s %-10s %n", "Boot", "Start", "End", "Sectors", "Size", "Type");
         for (PartitionMetadata pmd : partitionData) {
             System.out.println(pmd.toString());
         }

@@ -3,17 +3,13 @@ import java.util.HashMap;
 
 public class PartitionMetadata {
 
-    private String partitionID;
-    private String partitionType;
-    private String startHead;
-    private String startSector;
-    private String startCylinder;
-    private String endHead;
-    private String endSector;
-    private String endCylinder;
-    private int partitionStartSector;
-    private int partitionEndSector;
-    private int partitionSize;
+    private String id;
+    private String type;
+    private String boot;
+    private int start;
+    private int end;
+    private int sectors;
+    private int size;
     private static HashMap<String, String> typeHexToName = new HashMap<>() {{
         put("0c", "FAT32 LBA");
         put("83", "LINUX");
@@ -22,21 +18,20 @@ public class PartitionMetadata {
 
 
     public PartitionMetadata(String[] partitionMetadata) {
-        startHead = partitionMetadata[1];
-        startSector = partitionMetadata[2];
-        startCylinder = partitionMetadata[3];
-        partitionID = partitionMetadata[4];
-        partitionType = typeHexToName.get(partitionMetadata[4]);
-        endHead = partitionMetadata[5];
-        endSector = partitionMetadata[6];
-        endCylinder = partitionMetadata[7];
-
-        partitionStartSector = Utils.hexToDecimal(Utils.hexArrayToLEHexString(Arrays.copyOfRange(partitionMetadata, 8, 12)));
-        partitionEndSector = Utils.hexToDecimal(Utils.hexArrayToLEHexString(Arrays.copyOfRange(partitionMetadata, 12, 16)));
-        partitionSize = Utils.getPartitionSize(partitionStartSector, partitionEndSector);
+        boot = partitionMetadata[0];
+        id = partitionMetadata[4];
+        type = typeHexToName.get(partitionMetadata[4]);
+        start = Utils.hexToDecimal(Utils.hexArrayToLEHexString(Arrays.copyOfRange(partitionMetadata, 8, 12)));
+        sectors = Utils.hexToDecimal(Utils.hexArrayToLEHexString(Arrays.copyOfRange(partitionMetadata, 12, 16)));
+        end = start + sectors - 1;
+        size = getPartitionSize(sectors);
     }
 
     public String toString() {
-        return String.format("%-5s %-14s %-14s %-12s %-10s %n", partitionID, partitionStartSector, partitionEndSector, (partitionSize + "M"), partitionType);
+        return String.format("%-10s %-10s %-10s %-10s %-10s %-10s %n", boot, start, end, sectors, size+"M", type);
+    }
+
+    private int getPartitionSize(int sectors) {
+        return (sectors * 512) / 1000000;
     }
 }

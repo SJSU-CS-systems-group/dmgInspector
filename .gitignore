@@ -2,3 +2,6 @@
 MBR_Partition_Test.iml
 out
 src/images/*
+bin/
+.DS_Store
+partition-inspector.iml

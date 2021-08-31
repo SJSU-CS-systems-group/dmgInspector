@@ -84,10 +84,4 @@ public class Utils {
         }
         return hexString;
     }
-
-    public static int getPartitionSize(int startPartition, int endPartition) {
-        return ((endPartition - startPartition) * 512) / 1000000;
-    }
-
-
 }
