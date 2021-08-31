@@ -34,6 +34,6 @@ public class PartitionMetadata {
     }
 
     private int getPartitionSize(int sectors) {
-        return (sectors * 512) / 1000000;
+        return (sectors * 512) / (1024 * 1024);
     }
 }

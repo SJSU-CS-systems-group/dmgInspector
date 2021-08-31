@@ -22,7 +22,7 @@ public class Main {
      * */
 
     public static void main(String[] args) throws IOException {
-        String imgPath = "src/images/partex.img";
+        String imgPath = "src/images/rpie-lite.img";
 //        String imgPath = Utils.chooseImagePath();
         System.out.println("Disk " + Utils.getPathFileName(imgPath) + ": [MORE INFO HERE]");
 
