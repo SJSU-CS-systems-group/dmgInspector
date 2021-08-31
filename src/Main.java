@@ -47,15 +47,15 @@ public class Main {
         }
 
         for (int c = 0; c < partitions.length; c++) {
-//            System.out.println(Arrays.toString(partitions[c]));
+            System.out.println(Arrays.toString(partitions[c]));
             partitionData.add(new PartitionMetadata(partitions[c]));
         }
     }
 
     private static void printPartitionMetadata() {
-        System.out.printf("%-10s %-10s %-10s %-10s %-10s %-10s %n", "Boot", "Start", "End", "Sectors", "Size", "Type");
-        for (PartitionMetadata pmd : partitionData) {
-            System.out.println(pmd.toString());
+        System.out.printf("%-10s %-10s %-10s %-10s %-10s %-10s %-10s %n", "No", "Boot", "Start", "End", "Sectors", "Size", "Type");
+        for (int i = 0; i < partitionData.size(); i++) {
+            System.out.printf("%-10s %s", i, partitionData.get(i).toString());
         }
     }
 

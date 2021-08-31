@@ -14,6 +14,8 @@ public class PartitionMetadata {
         put("0c", "FAT32 LBA");
         put("83", "LINUX");
         put("00", "Empty");
+        put("05", "Extended");
+        put("07", "HPFS/NTFS/exFAT");
     }};
 
 
