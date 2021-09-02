@@ -11,6 +11,16 @@ public class Utils {
      * @return Image path chosen by the user via their File Explorer.
      * @throws FileNotFoundException Reference: https://mkyong.com/swing/java-swing-jfilechooser-example/
      */
+    private static String[] partitionType = new String[256];
+    static {
+        partitionType[0] = "unused";
+        partitionType[12] = "FAT32";
+        partitionType[131] = "Linux";
+        partitionType[5] = "Extended";
+        partitionType[7] = "HPFS/NTFS/exFAT";
+        partitionType[175] = "HFS/HFS+";
+    }
+
     public static String chooseImagePath() throws FileNotFoundException {
         JFileChooser jfc = new JFileChooser(System.getProperty("user.dir"));
         int returnValue = jfc.showOpenDialog(null);
@@ -29,5 +39,10 @@ public class Utils {
     public static String getPathFileName(String imgPath) {
         Path p = Paths.get(imgPath);
         return p.getFileName().toString();
+    }
+
+    public static String getPartitionType(byte id){
+        return Utils.partitionType[id & 0xff];
+
     }
 }
