@@ -12,14 +12,29 @@ public class PartitionTable {
     private static byte[] block;
     private static List<PartitionEntry> partitionEntries = new ArrayList<>();
 
-    private PartitionTable(byte[] bytes){
+    private PartitionTable(byte[] bytes) {
         int partitionStart = MBR_BYTES - PARTITION_TABLE_BYTES - 2;
         int partitionEnd = MBR_BYTES - 2;
         block = Arrays.copyOfRange(bytes, 0, partitionStart);
         partitionEntries = getPartitionEntries(Arrays.copyOfRange(bytes, partitionStart, partitionEnd));
     }
 
-    private ArrayList<PartitionEntry> getPartitionEntries(byte[] bytes){
+    // Get an extended partition from an image by the extended partition's start sector
+    public PartitionTable getExtendedPartition(String imgPath, int sector) throws IOException {
+        byte[] bytes = getImageBytes(imgPath, sector * MBR_BYTES + MBR_BYTES);
+        return new PartitionTable(bytes, sector);
+    }
+
+    // Constructor for an getting an Extended Partition by its start sector
+    private PartitionTable(byte[] bytes, int startSector) {
+        int extPartOffset = startSector * MBR_BYTES;
+        int partitionStart = extPartOffset + MBR_BYTES - PARTITION_TABLE_BYTES - 2;
+        int partitionEnd = extPartOffset + MBR_BYTES - 2;
+        block = Arrays.copyOfRange(bytes, 0, partitionStart);
+        partitionEntries = getPartitionEntries(Arrays.copyOfRange(bytes, partitionStart, partitionEnd));
+    }
+
+    private ArrayList<PartitionEntry> getPartitionEntries(byte[] bytes) {
         ArrayList<PartitionEntry> partitionEntries = new ArrayList<>();
         for (int i = 0; i < PARTITION_COUNT; i++) {
             byte[] entryBytes = Arrays.copyOfRange(bytes, i * PARTITION_BYTES, i * PARTITION_BYTES + PARTITION_BYTES);
@@ -53,13 +68,13 @@ public class PartitionTable {
         }
     }
 
-    public void printPartitionEntriesAsHex(){
-        for (PartitionEntry entry: partitionEntries){
+    public void printPartitionEntriesAsHex() {
+        for (PartitionEntry entry : partitionEntries) {
             System.out.println(OriginalBytesToHexString(entry.originalBytes));
         }
     }
 
-    private String OriginalBytesToHexString(byte[] bytes){
+    private String OriginalBytesToHexString(byte[] bytes) {
         StringBuilder sb = new StringBuilder();
         for (byte b : bytes) {
             sb.append(String.format("%02X ", b));
