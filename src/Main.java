@@ -12,6 +12,7 @@ public class Main {
         partitionTable.print();
 
 //        UNCOMMENT THE CODE BELOW TO SEE THE EXTENDED PARTITION PARSING EXAMPLE
+//          This only works on partex.img
 //        // To-do: Un-hardcode extended partition reading logic
 //        PartitionTable extPart1 = partitionTable.getExtendedPartition(imgPath, 22528);
 //        extPart1.printPartitionEntriesAsHex();
