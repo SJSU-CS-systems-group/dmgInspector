@@ -1,17 +1,15 @@
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.util.Arrays;
-import java.util.HashMap;
 
 public class PartitionEntry {
     public byte[] originalBytes;
-    private byte id;
-    private byte type;
-    private byte boot;
-    private int start;
-    private int end;
-    private int sectors;
-    private String size;
+    public byte id;
+    public String type;
+    public byte boot;
+    public int start;
+    public int end;
+    public int sectors;
+    public String size;
     //private Utils utility;
 //    private static HashMap<Byte, String> typeByteToName = new HashMap<>() {{
 //        put(Byte.valueOf('12'), "FAT32 LBA");
@@ -29,18 +27,27 @@ public class PartitionEntry {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
 
         boot = buffer.get();
-        buffer.position(buffer.position()+3);
+        buffer.position(buffer.position() + 3);
         id = buffer.get();
-//        type = typeByteToName.get(id);
-        buffer.position(buffer.position()+3);
+        type = Utils.getPartitionType(id);
+        buffer.position(buffer.position() + 3);
         start = buffer.getInt();
         sectors = buffer.getInt();
         end = start + sectors - 1;
         size = getPartitionSize(sectors);
     }
 
+    // Constructor for a partition entry that has its start and end sectors offset by its Extended Partition's start sector.
+    // Use this for EBR partition entries.
+    public PartitionEntry(byte[] partitionEntry, int startSector) {
+        this(partitionEntry);
+        start += startSector;
+        end += startSector;
+    }
+
+
     public String toString() {
-        return String.format("%-10s %-10s %-10s %-10s %-10s %-10s %n", boot, start, end, sectors, size, Utils.getPartitionType(id));
+        return String.format("%-10s %-10s %-10s %-10s %-10s %-10s %n", boot, start, end, sectors, size, type);
     }
 
     private String getPartitionSize(int sectors) {
@@ -71,5 +78,9 @@ public class PartitionEntry {
         } else {
             return bytes + " Bytes";
         }
+    }
+
+    public boolean isExtended() {
+        return id == 5;
     }
 }
