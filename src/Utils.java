@@ -7,11 +7,7 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Utils {
-    /**
-     * @return Image path chosen by the user via their File Explorer.
-     * @throws FileNotFoundException Reference: https://mkyong.com/swing/java-swing-jfilechooser-example/
-     */
-    private static String[] partitionType = new String[256];
+    public static String[] partitionType = new String[256];
     static {
         partitionType[0] = "unused";
         partitionType[12] = "FAT32";
@@ -21,6 +17,11 @@ public class Utils {
         partitionType[175] = "HFS/HFS+";
     }
 
+
+    /**
+     * @return Image path chosen by the user via their File Explorer.
+     * @throws FileNotFoundException Reference: https://mkyong.com/swing/java-swing-jfilechooser-example/
+     */
     public static String chooseImagePath() throws FileNotFoundException {
         JFileChooser jfc = new JFileChooser(System.getProperty("user.dir"));
         int returnValue = jfc.showOpenDialog(null);
