@@ -1,5 +1,7 @@
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.text.DecimalFormat;
+import java.text.NumberFormat;
 
 public class PartitionEntry {
     public byte[] originalBytes;
@@ -54,27 +56,28 @@ public class PartitionEntry {
         return bytesIntoHumanReadable(sectors * 512);
     }
 
-    private String bytesIntoHumanReadable(long bytes) {
-        // sourced from https://stackoverflow.com/questions/3758606/how-can-i-convert-byte-size-into-a-human-readable-format-in-java
-        long kilobyte = 1024;
-        long megabyte = kilobyte * 1024;
-        long gigabyte = megabyte * 1024;
-        long terabyte = gigabyte * 1024;
+    private String bytesIntoHumanReadable(double bytes) {
+        double kilobyte = 1024;
+        double megabyte = kilobyte * 1024;
+        double gigabyte = megabyte * 1024;
+        double terabyte = gigabyte * 1024;
+
+        NumberFormat formatter = new DecimalFormat("#0.0");
 
         if ((bytes >= 0) && (bytes < kilobyte)) {
             return bytes + " B";
 
         } else if ((bytes >= kilobyte) && (bytes < megabyte)) {
-            return (bytes / kilobyte) + " KB";
+            return formatter.format(bytes / kilobyte) + " KB";
 
         } else if ((bytes >= megabyte) && (bytes < gigabyte)) {
-            return (bytes / megabyte) + " MB";
+            return formatter.format(bytes / megabyte) + " MB";
 
         } else if ((bytes >= gigabyte) && (bytes < terabyte)) {
-            return (bytes / gigabyte) + " GB";
+            return formatter.format(bytes / gigabyte) + " GB";
 
         } else if (bytes >= terabyte) {
-            return (bytes / terabyte) + " TB";
+            return formatter.format(bytes / terabyte) + " TB";
 
         } else {
             return bytes + " Bytes";
