@@ -55,6 +55,7 @@ public class PartitionEntry {
     }
 
     private String bytesIntoHumanReadable(long bytes) {
+        // sourced from https://stackoverflow.com/questions/3758606/how-can-i-convert-byte-size-into-a-human-readable-format-in-java
         long kilobyte = 1024;
         long megabyte = kilobyte * 1024;
         long gigabyte = megabyte * 1024;
