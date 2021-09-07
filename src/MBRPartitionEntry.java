@@ -3,7 +3,7 @@ import java.nio.ByteOrder;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
 
-public class PartitionEntry {
+public class MBRPartitionEntry {
     public byte[] originalBytes;
     public byte id;
     public String type;
@@ -13,7 +13,7 @@ public class PartitionEntry {
     public int sectors;
     public String size;
 
-    public PartitionEntry(byte[] partitionEntry) {
+    public MBRPartitionEntry(byte[] partitionEntry) {
         originalBytes = partitionEntry;
 
         ByteBuffer buffer = ByteBuffer.wrap(partitionEntry);
@@ -32,7 +32,7 @@ public class PartitionEntry {
 
     // Constructor for a partition entry that has its start and end sectors offset by its Extended Partition's start sector.
     // Use this for EBR partition entries.
-    public PartitionEntry(byte[] partitionEntry, int startSector) {
+    public MBRPartitionEntry(byte[] partitionEntry, int startSector) {
         this(partitionEntry);
         start += startSector;
         end += startSector;

@@ -2,36 +2,42 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.text.DecimalFormat;
 import java.text.NumberFormat;
+import java.util.HashMap;
+import java.util.Map;
 
 public class GPTPartitionEntry {
     public byte[] originalBytes;
-    public byte id;
     public String type;
     public long start;
     public long end;
     public long lbaSectors;
     public String size;
+    public Map<String, String> guidMap = new HashMap<String, String>()
+    {{
+        put("48465300-0000-11AA-AA11-00306543ECAC", "Hierarchical File System Plus (HFS+)");
+        put("00000000-0000-0000-0000-000000000000", "unused");
+    }};
 
 
     public GPTPartitionEntry(byte[] partitionEntry) {
         originalBytes = partitionEntry;
-
         ByteBuffer buffer = ByteBuffer.wrap(partitionEntry);
-
         // Get the GUID for finding the Partition Type
-        String guidHex = getGuidHex(buffer);
-        System.out.println(guidHex);
-
-
+        type = guidMap.get(getGuidHex(buffer));
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         buffer.position(buffer.position() + 16);
         start = buffer.getLong();
         end = buffer.getLong();
         lbaSectors = (end - start) + 1;
         size = getPartitionSize(lbaSectors);
+    }
 
+    public String toString() {
+        return String.format("%-10s %-10s %-10s %-10s %-10s %n", start, end, lbaSectors, size, type);
+    }
 
-        System.out.println("Start: " + start + " | " + "End: " + end + " | " + "Sectors: " + lbaSectors + " | " + "Size: " + size);
+    public boolean determineIfUnusedPartition() {
+        return this.type.equals("unused");
     }
 
     private String getPartitionSize(long sectors) {

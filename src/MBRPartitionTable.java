@@ -1,19 +1,18 @@
-import java.io.FileInputStream;
 import java.io.IOException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
-public class PartitionTable {
+public class MBRPartitionTable {
     private static final int SECTOR_SIZE = 512;
     private static final int PARTITION_TABLE_BYTES = 64;
     private static final int PARTITION_COUNT = 4;
     private static final int PARTITION_BYTES = 16;
     private static final int BOOT_SIGNATURE_BYTES = 2;
     private static final int EBR_PARTITION_COUNT = 2;
-    public List<PartitionEntry> partitionEntries;
+    public List<MBRPartitionEntry> partitionEntries;
 
-    private PartitionTable(String imgPath) throws IOException {
+    private MBRPartitionTable(String imgPath) throws IOException {
         partitionEntries = getPartitionEntries(imgPath);
     }
 
@@ -22,13 +21,13 @@ public class PartitionTable {
      * @return List of MBR and EBR partition entries
      * @throws IOException
      */
-    private static ArrayList<PartitionEntry> getPartitionEntries(String imgPath) throws IOException {
+    private static ArrayList<MBRPartitionEntry> getPartitionEntries(String imgPath) throws IOException {
         // Partition Entries start as just the four primary partitions of the MBR.
-        ArrayList<PartitionEntry> partitionEntries = getMBRPartitionEntries(imgPath);
+        ArrayList<MBRPartitionEntry> partitionEntries = getMBRPartitionEntries(imgPath);
 
         // If one of the primary partitions is an extended partition, we append its EBRs to the list of partition entries.
-        ArrayList<PartitionEntry> ebrPartitionEntries = null;
-        for (PartitionEntry e : partitionEntries) {
+        ArrayList<MBRPartitionEntry> ebrPartitionEntries = null;
+        for (MBRPartitionEntry e : partitionEntries) {
             if (e.isExtended()) {
                 ebrPartitionEntries = getEBRPartitionEntries(imgPath, e.start);
                 break; // We can break since only one primary partition can be extended.
@@ -36,7 +35,7 @@ public class PartitionTable {
         }
 
         if (ebrPartitionEntries != null) {
-            for (PartitionEntry e : ebrPartitionEntries) {
+            for (MBRPartitionEntry e : ebrPartitionEntries) {
                 partitionEntries.add(e);
             }
         }
@@ -49,17 +48,17 @@ public class PartitionTable {
      * @return List of MBR Partition entries
      * @throws IOException
      */
-    private static ArrayList<PartitionEntry> getMBRPartitionEntries(String imgPath) throws IOException {
+    private static ArrayList<MBRPartitionEntry> getMBRPartitionEntries(String imgPath) throws IOException {
         byte[] mbrBytes = Utils.getImageBytes(imgPath, SECTOR_SIZE);
         int partitionStart = SECTOR_SIZE - PARTITION_TABLE_BYTES - BOOT_SIGNATURE_BYTES;
         int partitionEnd = SECTOR_SIZE - BOOT_SIGNATURE_BYTES;
 
         byte[] mbrPartitionBytes = Arrays.copyOfRange(mbrBytes, partitionStart, partitionEnd);
 
-        ArrayList<PartitionEntry> mbrPartitionEntries = new ArrayList<>();
+        ArrayList<MBRPartitionEntry> mbrPartitionEntries = new ArrayList<>();
         for (int i = 0; i < PARTITION_COUNT; i++) {
             byte[] entryBytes = Arrays.copyOfRange(mbrPartitionBytes, i * PARTITION_BYTES, i * PARTITION_BYTES + PARTITION_BYTES);
-            PartitionEntry entry = new PartitionEntry(entryBytes);
+            MBRPartitionEntry entry = new MBRPartitionEntry(entryBytes);
             mbrPartitionEntries.add(entry);
         }
 
@@ -71,12 +70,12 @@ public class PartitionTable {
      * @return List of EBR Partition entries
      * @throws IOException
      */
-    private static ArrayList<PartitionEntry> getEBRPartitionEntries(String imgPath, int startSector) throws IOException {
-        ArrayList<PartitionEntry> ebrPartitionEntries = new ArrayList<>();
+    private static ArrayList<MBRPartitionEntry> getEBRPartitionEntries(String imgPath, int startSector) throws IOException {
+        ArrayList<MBRPartitionEntry> ebrPartitionEntries = new ArrayList<>();
 
         // Each EBR's first partition has a partition type
         // Their second partition is either an extended partition or unused -- we'll follow the chain of EBRs until there are no more extended partitions to follow.
-        PartitionEntry[] ebrPartitions = getEBRPartitions(imgPath, startSector);
+        MBRPartitionEntry[] ebrPartitions = getEBRPartitions(imgPath, startSector);
         ebrPartitionEntries.add(ebrPartitions[0]);
 
         while (ebrPartitions[1].isExtended()) {
@@ -93,7 +92,7 @@ public class PartitionTable {
      * @return An array containing the first and second EBR partitions
      * @throws IOException
      */
-    private static PartitionEntry[] getEBRPartitions(String imgPath, int startSector) throws IOException {
+    private static MBRPartitionEntry[] getEBRPartitions(String imgPath, int startSector) throws IOException {
         int extPartOffset = startSector * SECTOR_SIZE;
         int partitionStart = extPartOffset + SECTOR_SIZE - PARTITION_TABLE_BYTES - BOOT_SIGNATURE_BYTES;
         int partitionEnd = extPartOffset + SECTOR_SIZE - BOOT_SIGNATURE_BYTES;
@@ -102,29 +101,29 @@ public class PartitionTable {
 
         // First EBR Partition has a partition type (e.g. Linux)
         // Second EBR Partition is either an Extended Partition or Unused.
-        PartitionEntry[] ebrPartitions = new PartitionEntry[EBR_PARTITION_COUNT];
+        MBRPartitionEntry[] ebrPartitions = new MBRPartitionEntry[EBR_PARTITION_COUNT];
         for (int i = 0; i < EBR_PARTITION_COUNT; i++) {
             byte[] entryBytes = Arrays.copyOfRange(ebrPartBytes, i * PARTITION_BYTES, i * PARTITION_BYTES + PARTITION_BYTES);
-            ebrPartitions[i] = new PartitionEntry(entryBytes, startSector);
+            ebrPartitions[i] = new MBRPartitionEntry(entryBytes, startSector);
         }
 
         return ebrPartitions;
     }
 
 
-    public static PartitionTable parseImage(String imgPath) throws IOException {
-        return new PartitionTable(imgPath);
+    public static MBRPartitionTable parseImage(String imgPath) throws IOException {
+        return new MBRPartitionTable(imgPath);
     }
 
-    public void print() {
-        System.out.printf("%-10s %-10s %-10s %-10s %-10s %-10s %-10s %n", "P No.", "Boot", "Start", "End", "Sectors", "Size", "Type");
+    public void print(String imageName) {
+        System.out.printf("%-45s %-10s %-10s %-10s %-10s %-10s %-10s %n", "Partition", "Boot", "Start", "End", "Sectors", "Size", "Type");
         for (int i = 0; i < partitionEntries.size(); i++) {
-            System.out.printf("%-10s %s", i, partitionEntries.get(i).toString());
+            System.out.printf("%-45s %s", imageName + (i + 1), partitionEntries.get(i).toString());
         }
     }
 
     public void printPartitionEntriesAsHex() {
-        for (PartitionEntry entry : partitionEntries) {
+        for (MBRPartitionEntry entry : partitionEntries) {
             System.out.println(OriginalBytesToHexString(entry.originalBytes));
         }
     }

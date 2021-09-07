@@ -36,6 +36,15 @@ public class GPTPartitionTable {
     public static GPTPartitionTable parseImage(String imgPath) throws IOException {
         return new GPTPartitionTable(imgPath);
     }
+
+    public void print(String imageName) {
+        System.out.printf("%-45s %-10s %-10s %-10s %-10s %-10s %n", "Partition", "Start", "End", "LBA Sectors", "Size", "Type");
+        for (int i = 0; i < partitionEntries.size(); i++) {
+            //TODO: Does GPT always parition in order?
+            if(!partitionEntries.get(i).determineIfUnusedPartition())
+                System.out.printf("%-45s %s", imageName + (i + 1), partitionEntries.get(i).toString());
+        }
+    }
 }
 
 class GPTPartitionHeader {
