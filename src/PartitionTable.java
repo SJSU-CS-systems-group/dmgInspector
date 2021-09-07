@@ -50,7 +50,7 @@ public class PartitionTable {
      * @throws IOException
      */
     private static ArrayList<PartitionEntry> getMBRPartitionEntries(String imgPath) throws IOException {
-        byte[] mbrBytes = getImageBytes(imgPath, SECTOR_SIZE);
+        byte[] mbrBytes = Utils.getImageBytes(imgPath, SECTOR_SIZE);
         int partitionStart = SECTOR_SIZE - PARTITION_TABLE_BYTES - BOOT_SIGNATURE_BYTES;
         int partitionEnd = SECTOR_SIZE - BOOT_SIGNATURE_BYTES;
 
@@ -97,7 +97,7 @@ public class PartitionTable {
         int extPartOffset = startSector * SECTOR_SIZE;
         int partitionStart = extPartOffset + SECTOR_SIZE - PARTITION_TABLE_BYTES - BOOT_SIGNATURE_BYTES;
         int partitionEnd = extPartOffset + SECTOR_SIZE - BOOT_SIGNATURE_BYTES;
-        byte[] ebrBytes = getImageBytes(imgPath, startSector * SECTOR_SIZE + SECTOR_SIZE);
+        byte[] ebrBytes = Utils.getImageBytes(imgPath, startSector * SECTOR_SIZE + SECTOR_SIZE);
         byte[] ebrPartBytes = Arrays.copyOfRange(ebrBytes, partitionStart, partitionEnd);
 
         // First EBR Partition has a partition type (e.g. Linux)
@@ -114,18 +114,6 @@ public class PartitionTable {
 
     public static PartitionTable parseImage(String imgPath) throws IOException {
         return new PartitionTable(imgPath);
-    }
-
-    private static byte[] getImageBytes(String imagePath, int numBytes) throws IOException {
-        FileInputStream in = null;
-        byte[] bytes = new byte[numBytes];
-        try {
-            in = new FileInputStream(imagePath);
-            in.read(bytes);
-        } finally {
-            in.close();
-        }
-        return bytes;
     }
 
     public void print() {

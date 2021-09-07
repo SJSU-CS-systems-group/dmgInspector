@@ -12,15 +12,6 @@ public class PartitionEntry {
     public int end;
     public int sectors;
     public String size;
-    //private Utils utility;
-//    private static HashMap<Byte, String> typeByteToName = new HashMap<>() {{
-//        put(Byte.valueOf('12'), "FAT32 LBA");
-//        put(0x83, "LINUX");
-//        put('0', "Empty");
-//        put(0x05, "Extended");
-//        put(0x07, "HPFS/NTFS/exFAT");
-//    }};
-
 
     public PartitionEntry(byte[] partitionEntry) {
         originalBytes = partitionEntry;
@@ -46,7 +37,6 @@ public class PartitionEntry {
         start += startSector;
         end += startSector;
     }
-
 
     public String toString() {
         return String.format("%-10s %-10s %-10s %-10s %-10s %-10s %n", boot, start, end, sectors, size, type);

@@ -8,7 +8,15 @@ public class Main {
 //        String imgPath = "src/images/2021-05-07-raspios-buster-armhf-lite.img";
         PartitionTable partitionTable = PartitionTable.parseImage(imgPath);
 
-        partitionTable.printPartitionEntriesAsHex();
-        partitionTable.print();
+        // Determine MBR or GPT
+        if(partitionTable.partitionEntries.get(0).type.equals("GUID Parition Table")) {
+            // Read LBA 1
+            GPTPartitionTable gptPartitionTable = GPTPartitionTable.parseImage(imgPath);
+        }
+
+
+
+        // partitionTable.printPartitionEntriesAsHex();
+        // partitionTable.print();
     }
 }

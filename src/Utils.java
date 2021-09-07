@@ -15,8 +15,8 @@ public class Utils {
         partitionType[5] = "Extended";
         partitionType[7] = "HPFS/NTFS/exFAT";
         partitionType[175] = "HFS/HFS+";
+        partitionType[238] = "GUID Parition Table";
     }
-
 
     /**
      * @return Image path chosen by the user via their File Explorer.
@@ -45,5 +45,17 @@ public class Utils {
     public static String getPartitionType(byte id){
         return Utils.partitionType[id & 0xff];
 
+    }
+
+    public static byte[] getImageBytes(String imagePath, int numBytes) throws IOException {
+        FileInputStream in = null;
+        byte[] bytes = new byte[numBytes];
+        try {
+            in = new FileInputStream(imagePath);
+            in.read(bytes);
+        } finally {
+            in.close();
+        }
+        return bytes;
     }
 }
