@@ -17,9 +17,14 @@ public class GPTPartitionEntry {
         originalBytes = partitionEntry;
 
         ByteBuffer buffer = ByteBuffer.wrap(partitionEntry);
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
 
-        buffer.position(buffer.position() + 32);
+        // Get the GUID for finding the Partition Type
+        String guidHex = getGuidHex(buffer);
+        System.out.println(guidHex);
+
+
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        buffer.position(buffer.position() + 16);
         start = buffer.getLong();
         end = buffer.getLong();
         lbaSectors = (end - start) + 1;
@@ -31,6 +36,14 @@ public class GPTPartitionEntry {
 
     private String getPartitionSize(long sectors) {
         return bytesIntoHumanReadable(sectors * 512);
+    }
+
+    private String OriginalBytesToHexString(byte[] bytes) {
+        StringBuilder sb = new StringBuilder();
+        for (byte b : bytes) {
+            sb.append(String.format("%02X ", b));
+        }
+        return sb.toString();
     }
 
     private String bytesIntoHumanReadable(double bytes) {
@@ -59,5 +72,36 @@ public class GPTPartitionEntry {
         } else {
             return bytes + " Bytes";
         }
+    }
+
+    private static String getGuidHex(ByteBuffer buffer) {
+        String guidHex = "";
+        int first8GuidBytes = buffer.getInt();
+        String first8GuidHex = String.format("%08X", first8GuidBytes);
+        guidHex += first8GuidHex;
+
+        buffer.order(ByteOrder.BIG_ENDIAN);
+        short next2GuidBytes = buffer.getShort();
+        String next2GuidHex = String.format("%04X", next2GuidBytes);
+        guidHex += "-" + next2GuidHex;
+
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        next2GuidBytes = buffer.getShort();
+        next2GuidHex = String.format("%04X", next2GuidBytes);
+        guidHex += "-" + next2GuidHex;
+
+        buffer.order(ByteOrder.BIG_ENDIAN);
+        next2GuidBytes = buffer.getShort();
+        next2GuidHex = String.format("%04X", next2GuidBytes);
+        guidHex += "-" + next2GuidHex;
+
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+        // First 16 bytes are the Partition GUID
+        String last6BytesHex = "";
+        for (int i = 0; i < 6; i++) {
+            last6BytesHex += String.format("%02X", buffer.get() & 0xff);
+        }
+        guidHex += "-" + last6BytesHex;
+        return guidHex;
     }
 }
