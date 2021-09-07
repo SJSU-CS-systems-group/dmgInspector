@@ -76,6 +76,7 @@ public class GPTPartitionEntry {
 
     private static String getGuidHex(ByteBuffer buffer) {
         String guidHex = "";
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
         int first8GuidBytes = buffer.getInt();
         String first8GuidHex = String.format("%08X", first8GuidBytes);
         guidHex += first8GuidHex;
