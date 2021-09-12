@@ -3,7 +3,7 @@ import java.io.IOException;
 public class Main {
 
     public static void main(String[] args) throws IOException {
-        String imgPath = Utils.chooseImagePath();
+        /*String imgPath = Utils.chooseImagePath();
         MBRPartitionTable partitionTable = MBRPartitionTable.parseImage(imgPath);
 
         // Determine MBR or GPT
@@ -13,6 +13,8 @@ public class Main {
             gptPartitionTable.print(imgPath.substring(imgPath.lastIndexOf('/') + 1));
         } else {
             partitionTable.print(imgPath.substring(imgPath.lastIndexOf('/') + 1));
-        }
+        }*/
+        String dmgFile = Utils.chooseImagePath();
+        DMGInspector dmgInspector = DMGInspector.parseImage(dmgFile);
     }
 }
