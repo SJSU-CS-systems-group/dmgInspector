@@ -9,6 +9,8 @@ public class DMGInspector {
     public DMGInspector (String dmgFile) throws IOException {
         kolyBlockBytes = getKolyBlockBytes(dmgFile);
         dmgKolyBlock = new DMGKolyBlock(kolyBlockBytes);
+
+        System.out.println(dmgKolyBlock);
         /*StringBuilder sb = new StringBuilder();
         for (byte b : kolyBlockBytes) {
             sb.append(String.format("%02X ", b));

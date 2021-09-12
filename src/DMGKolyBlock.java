@@ -1,9 +1,6 @@
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.Arrays;
-import java.util.Base64;
 
 public class DMGKolyBlock {
 
@@ -23,7 +20,7 @@ public class DMGKolyBlock {
 
     private int DataChecksumType;      // Data fork
     private int DataChecksumSize;      //  Checksum Information
-    private int[] DataChecksum = new int[32];      // Up to 128-bytes (32 x 4) of checksum
+    private byte[] DataChecksum = new byte[128];      // Up to 128-bytes (32 x 4) of checksum
 
     private long XMLOffset;             // Offset of property list in DMG, from beginning
     private long XMLLength;             // Length of property list
@@ -31,7 +28,7 @@ public class DMGKolyBlock {
 
     private int ChecksumType;          // Master
     private int ChecksumSize;          //  Checksum information
-    private int[] Checksum = new int[32];          // Up to 128-bytes (32 x 4) of checksum
+    private byte[] Checksum = new byte[128];          // Up to 128-bytes (32 x 4) of checksum
 
     private int ImageVariant;          // Commonly 1
     private long SectorCount;           // Size of DMG when expanded, in sectors
@@ -45,8 +42,82 @@ public class DMGKolyBlock {
         originalDmgKolyBytes = dmgKolyBytes;
         ByteBuffer buffer = ByteBuffer.wrap(dmgKolyBytes);
         buffer.order(ByteOrder.BIG_ENDIAN);
-        int kolyHex = buffer.getInt();
-        signature = String.format("%08X", kolyHex);
+
+        int kolyBytes = buffer.getInt();
+        printHexString(kolyBytes);
+
+        Version = buffer.getInt();
+        HeaderSize = buffer.getInt();
+        Flags = buffer.getInt();
+        RunningDataForkOffset = buffer.getLong();
+        DataForkOffset = buffer.getLong();
+        DataForkLength = buffer.getLong();
+        RsrcForkOffset = buffer.getLong();
+        RsrcForkLength = buffer.getLong();
+
+        SegmentNumber = buffer.getInt();
+        SegmentCount = buffer.getInt();
+        copySignedBytesToArray(buffer, SegmentID);
+
+        DataChecksumType = buffer.getInt();
+        DataChecksumSize = buffer.getInt();
+        copySignedBytesToArray(buffer, DataChecksum);
+
+        XMLOffset = buffer.getLong();
+        XMLLength = buffer.getLong();
+        copySignedBytesToArray(buffer, Reserved1);
+
+        ChecksumType = buffer.getInt();
+        ChecksumSize = buffer.getInt();
+        copySignedBytesToArray(buffer, Checksum);
+
+        ImageVariant = buffer.getInt();
+        SectorCount = buffer.getLong();
+        reserved2 = buffer.getInt();
+        reserved3 = buffer.getInt();
+        reserved4 = buffer.getInt();
+    }
+
+    @Override
+    public String toString() {
+        String output = "";
+        output += "Version: " + Version + "\n";
+        output += "HeaderSize: " + HeaderSize + "\n";
+        output += "Flags: " + Flags + "\n";
+        output += "RunningDataForkOffset: " + RunningDataForkOffset + "\n";
+        output += "DataForkOffset: " + DataForkOffset + "\n";
+        output += "DataForkLength: " + DataForkLength + "\n";
+        output += "RsrcForkOffset: " + RsrcForkOffset + "\n";
+        output += "RsrcForkLength: " + RsrcForkLength + "\n";
+        output += "SegmentNumber: " + SegmentNumber + "\n";
+        output += "SegmentCount: " + SegmentCount + "\n";
+        output += "SegmentID: " + Arrays.toString(SegmentID) + "\n";
+        output += "DataChecksumType: " + DataChecksumType + "\n";
+        output += "DataChecksumSize: " + DataChecksumSize + "\n";
+        output += "DataChecksum: " + Arrays.toString(DataChecksum) + "\n";
+        output += "XMLOffset: " + XMLOffset + "\n";
+        output += "XMLLength: " + XMLLength + "\n";
+        // NOT PRINTING Reserved 1
+        output += "ChecksumType: " + ChecksumType + "\n";
+        output += "ChecksumSize: " + ChecksumSize + "\n";
+        output += "Checksum: " + Arrays.toString(Checksum) + "\n";
+        output += "ImageVariant: " + ImageVariant + "\n";
+        output += "SectorCount: " + SectorCount + "\n";
+
+        // NOT PRINTING Reserved 2,3,4
+
+        return output;
+    }
+
+    private void copySignedBytesToArray(ByteBuffer buffer, byte[] arr) {
+        for (int i = 0; i < arr.length; i++) {
+            arr[i] = buffer.get();
+        }
+    }
+
+
+    private void printHexString(int input) {
+        signature = String.format("%08X", input);
         System.out.println(signature);
     }
 }
