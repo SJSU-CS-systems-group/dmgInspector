@@ -43,8 +43,12 @@ public class DMGKolyBlock {
         ByteBuffer buffer = ByteBuffer.wrap(dmgKolyBytes);
         buffer.order(ByteOrder.BIG_ENDIAN);
 
-        int kolyBytes = buffer.getInt();
-        printHexString(kolyBytes);
+
+        // DMG Signature: "koly" (0x6B6F6C79)
+        byte[] kolyBytes = new byte[4];
+        buffer.get(kolyBytes);
+        System.out.println(new String(kolyBytes));
+        printHexString(ByteBuffer.wrap(kolyBytes).getInt());
 
         Version = buffer.getInt();
         HeaderSize = buffer.getInt();
@@ -57,19 +61,19 @@ public class DMGKolyBlock {
 
         SegmentNumber = buffer.getInt();
         SegmentCount = buffer.getInt();
-        copySignedBytesToArray(buffer, SegmentID);
+        buffer.get(SegmentID);
 
         DataChecksumType = buffer.getInt();
         DataChecksumSize = buffer.getInt();
-        copySignedBytesToArray(buffer, DataChecksum);
+        buffer.get(DataChecksum);
 
         XMLOffset = buffer.getLong();
         XMLLength = buffer.getLong();
-        copySignedBytesToArray(buffer, Reserved1);
+        buffer.get(Reserved1);
 
         ChecksumType = buffer.getInt();
         ChecksumSize = buffer.getInt();
-        copySignedBytesToArray(buffer, Checksum);
+        buffer.get(Checksum);
 
         ImageVariant = buffer.getInt();
         SectorCount = buffer.getLong();
@@ -107,12 +111,6 @@ public class DMGKolyBlock {
         // NOT PRINTING Reserved 2,3,4
 
         return output;
-    }
-
-    private void copySignedBytesToArray(ByteBuffer buffer, byte[] arr) {
-        for (int i = 0; i < arr.length; i++) {
-            arr[i] = buffer.get();
-        }
     }
 
 
