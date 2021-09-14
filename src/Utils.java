@@ -59,4 +59,28 @@ public class Utils {
         }
         return bytes;
     }
+
+    public static byte[] getImageBytes(String imagePath, int numBytes, int offset) throws IOException {
+        FileInputStream in = null;
+        byte[] bytes = new byte[numBytes];
+        try {
+            in = new FileInputStream(imagePath);
+            in.read(bytes, offset, 4);
+        } finally {
+            in.close();
+        }
+        return bytes;
+    }
+
+    public static int getImageBytesSize(String imagePath) throws IOException {
+        FileInputStream in = null;
+        int size = 0;
+        try {
+            in = new FileInputStream(imagePath);
+            size = in.available();
+        } finally {
+            in.close();
+        }
+        return size;
+    }
 }

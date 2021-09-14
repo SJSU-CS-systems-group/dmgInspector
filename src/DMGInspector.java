@@ -1,16 +1,21 @@
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.util.Arrays;
 
 public class DMGInspector {
     private static final int KOLY_BLOCK_SIZE = 512;
     private static byte[] kolyBlockBytes = new byte[KOLY_BLOCK_SIZE];
     private static DMGKolyBlock dmgKolyBlock;
+    private static Plist plist;
 
     public DMGInspector (String dmgFile) throws IOException {
         kolyBlockBytes = getKolyBlockBytes(dmgFile);
         dmgKolyBlock = new DMGKolyBlock(kolyBlockBytes);
 
-        System.out.println(dmgKolyBlock);
+        byte[] plistBytes = Utils.getImageBytes(dmgFile, (int) dmgKolyBlock.XMLLength + (int) dmgKolyBlock.XMLOffset);
+        byte[] newplistBytes = Arrays.copyOfRange(plistBytes, (int) dmgKolyBlock.XMLOffset, (int) dmgKolyBlock.XMLLength + (int) dmgKolyBlock.XMLOffset);
+        plist = new Plist(newplistBytes);
+
         /*StringBuilder sb = new StringBuilder();
         for (byte b : kolyBlockBytes) {
             sb.append(String.format("%02X ", b));

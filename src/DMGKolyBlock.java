@@ -22,8 +22,8 @@ public class DMGKolyBlock {
     private int DataChecksumSize;      //  Checksum Information
     private byte[] DataChecksum = new byte[128];      // Up to 128-bytes (32 x 4) of checksum
 
-    private long XMLOffset;             // Offset of property list in DMG, from beginning
-    private long XMLLength;             // Length of property list
+    public long XMLOffset;             // Offset of property list in DMG, from beginning
+    public long XMLLength;             // Length of property list
     private byte[] Reserved1 = new byte[120];        // 120 reserved bytes - zeroed
 
     private int ChecksumType;          // Master
@@ -47,8 +47,6 @@ public class DMGKolyBlock {
         // DMG Signature: "koly" (0x6B6F6C79)
         byte[] kolyBytes = new byte[4];
         buffer.get(kolyBytes);
-        System.out.println(new String(kolyBytes));
-        printHexString(ByteBuffer.wrap(kolyBytes).getInt());
 
         Version = buffer.getInt();
         HeaderSize = buffer.getInt();
