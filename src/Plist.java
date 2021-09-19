@@ -33,7 +33,8 @@ public class Plist {
 
 //                data[i] = dataDocs.item(i).getTextContent();
                 String s = dataDocs.item(i).getTextContent().replaceAll("[\\n\\s]", "");
-                System.out.println(Arrays.toString(Base64.getDecoder().decode(s)));
+                byte[] mishBytes = Base64.getDecoder().decode(s);
+               MishBlock block = new MishBlock(mishBytes);
             }
         } catch (Exception e) {
             System.out.println(e);
