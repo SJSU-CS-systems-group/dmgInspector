@@ -5,3 +5,4 @@ src/images/*
 bin/
 .DS_Store
 partition-inspector.iml
+decompressed.txt

@@ -58,13 +58,17 @@ public class MishBlock {
             blkxChunkEntries[i] = new BLKXChunkEntry(blockBytes);
         }
 
-        System.out.println("MISH BLOCK ENTRY");
-        System.out.println(toString());
-
-        for (int i = 0; i < NumberOfBlockChunks; i++) {
-            System.out.println("\t\t" + blkxChunkEntries[i]);
-        }
+//        System.out.println("MISH BLOCK ENTRY");
+//        System.out.println(toString());
+//
+//        for (int i = 0; i < NumberOfBlockChunks; i++) {
+//            System.out.println("\t\t" + blkxChunkEntries[i]);
+//        }
 //        System.out.println(Utils.OriginalBytesToHexString(everythingElse));
+    }
+
+    public BLKXChunkEntry[] getBlkxChunkEntries() {
+        return blkxChunkEntries;
     }
 
     @Override
@@ -89,12 +93,12 @@ public class MishBlock {
     }
 
     static class BLKXChunkEntry {
-        private int EntryType;         // Compression type used or entry type (see next table)
-        private int Comment;           // "+beg" or "+end", if EntryType is comment (0x7FFFFFFE). Else reserved.
-        private long SectorNumber;      // Start sector of this chunk
-        private long SectorCount;       // Number of sectors in this chunk
-        private long CompressedOffset;  // Start of chunk in data fork
-        private long CompressedLength;  // Count of bytes of chunk, in data fork
+        public int EntryType;         // Compression type used or entry type (see next table)
+        public int Comment;           // "+beg" or "+end", if EntryType is comment (0x7FFFFFFE). Else reserved.
+        public long SectorNumber;      // Start sector of this chunk
+        public long SectorCount;       // Number of sectors in this chunk
+        public long CompressedOffset;  // Start of chunk in data fork
+        public long CompressedLength;  // Count of bytes of chunk, in data fork
 
         public BLKXChunkEntry(byte[] blkxChunkBytes) {
             ByteBuffer buffer = ByteBuffer.wrap(blkxChunkBytes);

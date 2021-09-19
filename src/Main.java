@@ -15,6 +15,8 @@ public class Main {
             partitionTable.print(imgPath.substring(imgPath.lastIndexOf('/') + 1));
         }*/
 //        String dmgFile = Utils.chooseImagePath();
+
+
         String dmgFile = "src/images/bigandsmall.dmg";
         DMGInspector dmgInspector = DMGInspector.parseImage(dmgFile);
     }

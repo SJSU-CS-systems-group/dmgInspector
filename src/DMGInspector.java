@@ -8,13 +8,15 @@ public class DMGInspector {
     private static DMGKolyBlock dmgKolyBlock;
     private static Plist plist;
 
-    public DMGInspector (String dmgFile) throws IOException {
+    public DMGInspector(String dmgFile) throws IOException {
         kolyBlockBytes = getKolyBlockBytes(dmgFile);
         dmgKolyBlock = new DMGKolyBlock(kolyBlockBytes);
 
-        byte[] plistBytes = Utils.getImageBytes(dmgFile, (int) dmgKolyBlock.XMLLength + (int) dmgKolyBlock.XMLOffset);
-        byte[] newplistBytes = Arrays.copyOfRange(plistBytes, (int) dmgKolyBlock.XMLOffset, (int) dmgKolyBlock.XMLLength + (int) dmgKolyBlock.XMLOffset);
-        plist = new Plist(newplistBytes);
+        byte[] dataForkWithPlistBytes = Utils.getImageBytes(dmgFile, (int) dmgKolyBlock.XMLLength + (int) dmgKolyBlock.XMLOffset);
+        byte[] dataForkBytes = Arrays.copyOfRange(dataForkWithPlistBytes, 0, (int) dmgKolyBlock.XMLOffset + 1); // Do we need this +1?
+        byte[] plistBytes = Arrays.copyOfRange(dataForkWithPlistBytes, (int) dmgKolyBlock.XMLOffset, (int) dmgKolyBlock.XMLLength + (int) dmgKolyBlock.XMLOffset);
+
+        plist = new Plist(plistBytes, dataForkBytes);
 
         /*StringBuilder sb = new StringBuilder();
         for (byte b : kolyBlockBytes) {
