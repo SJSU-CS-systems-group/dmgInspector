@@ -25,12 +25,11 @@ public class Plist {
             NodeList dataDocs = d.getElementsByTagName("data");
             int dataLen = dataDocs.getLength();
 
-            File decompressedChunkDataFile = new File("./decompressed.txt");
-            if (decompressedChunkDataFile.exists()) {
-                decompressedChunkDataFile.delete();
+            File decompressedOutputFolder = new File("./output");
+            if (decompressedOutputFolder.exists()) {
+                decompressedOutputFolder.delete();
             }
-            decompressedChunkDataFile.createNewFile();
-            FileWriter decompressedChunkWriter = new FileWriter(decompressedChunkDataFile.getAbsolutePath());
+            decompressedOutputFolder.mkdir();
 
             for (int mishBlockIndex = 0; mishBlockIndex < dataLen; mishBlockIndex++) {
                 String s = dataDocs.item(mishBlockIndex).getTextContent().replaceAll("[\\n\\s]", "");
@@ -39,10 +38,14 @@ public class Plist {
 
                 // DECOMPRESS
                 MishBlock.BLKXChunkEntry[] blkxChunks = block.getBlkxChunkEntries();
+
+                File decompressedMishFile = new File("./output/decompressed" + mishBlockIndex );
+                FileWriter decompressedChunkWriter = new FileWriter(decompressedMishFile.getAbsolutePath());
+
                 if (blkxChunks.length > 0) {
                     for (int chunkIndex = 0; chunkIndex < blkxChunks.length; chunkIndex++) {
                         try {
-                            decompressedChunkWriter.write(String.format("\n$$$ MISH BLOCK #%d | BLKX CHUNK #%d $$$\n", mishBlockIndex, chunkIndex));
+//                            decompressedChunkWriter.write(String.format("\n$$$ MISH BLOCK #%d | BLKX CHUNK #%d $$$\n", mishBlockIndex, chunkIndex));
                             String decompressedChunk = BLKXBlockDecompress.decompressBLKXBlock(dataForkBytes, blkxChunks[chunkIndex]);
                             decompressedChunkWriter.write(decompressedChunk);
                         } catch (Exception e) {
@@ -50,9 +53,10 @@ public class Plist {
                         }
                     }
                 }
+
+                decompressedChunkWriter.close();
             }
 
-            decompressedChunkWriter.close();
         } catch (Exception e) {
             System.out.println(e);
         }
