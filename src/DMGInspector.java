@@ -1,5 +1,6 @@
 import java.io.FileInputStream;
 import java.io.IOException;
+import java.nio.ByteBuffer;
 import java.util.Arrays;
 
 public class DMGInspector {
@@ -13,10 +14,14 @@ public class DMGInspector {
         dmgKolyBlock = new DMGKolyBlock(kolyBlockBytes);
 
         byte[] dataForkWithPlistBytes = Utils.getImageBytes(dmgFile, (int) dmgKolyBlock.XMLLength + (int) dmgKolyBlock.XMLOffset);
-        byte[] dataForkBytes = Arrays.copyOfRange(dataForkWithPlistBytes, 0, (int) dmgKolyBlock.XMLOffset + 1); // Do we need this +1?
-        byte[] plistBytes = Arrays.copyOfRange(dataForkWithPlistBytes, (int) dmgKolyBlock.XMLOffset, (int) dmgKolyBlock.XMLLength + (int) dmgKolyBlock.XMLOffset);
+        ByteBuffer dataForkWithPlistBuffer = ByteBuffer.wrap(dataForkWithPlistBytes);
+        ByteBuffer dataForkBuffer = dataForkWithPlistBuffer.slice(0,(int) dmgKolyBlock.XMLOffset);
+        ByteBuffer plistBuffer = dataForkWithPlistBuffer.slice((int) dmgKolyBlock.XMLOffset, (int) dmgKolyBlock.XMLLength);
 
-        plist = new Plist(plistBytes, dataForkBytes);
+//        byte[] dataForkBytes = Arrays.copyOfRange(dataForkWithPlistBytes, 0, (int) dmgKolyBlock.XMLOffset + 1); // Do we need this +1?
+//        byte[] plistBytes = Arrays.copyOfRange(dataForkWithPlistBytes, (int) dmgKolyBlock.XMLOffset, (int) dmgKolyBlock.XMLLength + (int) dmgKolyBlock.XMLOffset);
+
+        plist = new Plist(plistBuffer, dataForkBuffer);
 
         /*StringBuilder sb = new StringBuilder();
         for (byte b : kolyBlockBytes) {

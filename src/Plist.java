@@ -7,19 +7,20 @@ import java.io.ByteArrayInputStream;
 import java.io.File;
 import java.io.FileWriter;
 import java.io.InputStream;
+import java.nio.ByteBuffer;
 import java.util.Base64;
 
 public class Plist {
 
-    public Plist(byte[] pListBytes, byte[] dataForkBytes) {
-//        String plistXML = new String(pListBytes);
+    public Plist(ByteBuffer pListBuffer, ByteBuffer dataForkBuffer) {
+//        String plistXML = new String(pListBuffer.array());
 //        System.out.println(plistXML);
-
+        System.out.println(pListBuffer.arrayOffset());
         DocumentBuilderFactory f = DocumentBuilderFactory.newInstance();
 
         try {
             DocumentBuilder builder = f.newDocumentBuilder();
-            InputStream is = new ByteArrayInputStream(pListBytes);
+            InputStream is = new ByteArrayInputStream(pListBuffer.array());
             Document d = builder.parse(is);
 
             NodeList dataDocs = d.getElementsByTagName("data");
@@ -45,8 +46,7 @@ public class Plist {
                 if (blkxChunks.length > 0) {
                     for (int chunkIndex = 0; chunkIndex < blkxChunks.length; chunkIndex++) {
                         try {
-//                            decompressedChunkWriter.write(String.format("\n$$$ MISH BLOCK #%d | BLKX CHUNK #%d $$$\n", mishBlockIndex, chunkIndex));
-                            String decompressedChunk = BLKXBlockDecompress.decompressBLKXBlock(dataForkBytes, blkxChunks[chunkIndex]);
+                            String decompressedChunk = BLKXBlockDecompress.decompressBLKXBlock(dataForkBuffer, blkxChunks[chunkIndex]);
                             decompressedChunkWriter.write(decompressedChunk);
                         } catch (Exception e) {
                             System.out.println(e);
