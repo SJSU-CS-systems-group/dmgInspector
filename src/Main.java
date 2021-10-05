@@ -15,7 +15,15 @@ public class Main {
 //            partitionTable.print(imgPath.substring(imgPath.lastIndexOf('/') + 1));
 //        }
 
-        String dmgFile = "src/images/bigandsmall.dmg";
-        DMGInspector dmgInspector = DMGInspector.parseImage(dmgFile);
+//        String dmgFile = "src/images/bigandsmall.dmg";
+//        DMGInspector dmgInspector = DMGInspector.parseImage(dmgFile);
+
+        String filepath = "output/decompressed4";
+        APFSSuperBlock apfsSuperBlock = APFSSuperBlock.parseImage(filepath);
+        System.out.println(apfsSuperBlock);
+
+
+
+
     }
 }
