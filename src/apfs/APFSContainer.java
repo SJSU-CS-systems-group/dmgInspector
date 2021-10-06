@@ -1,9 +1,13 @@
-import java.io.FileInputStream;
+package apfs;
+
+import utils.Utils;
 import java.io.IOException;
+import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
+import java.nio.ByteOrder;
 import java.util.Arrays;
 
-public class APFSSuperBlock {
+public class APFSContainer {
     public BlockHeader blockHeader;
     public byte[] magic = new byte[4];
     public int nx_block_size;
@@ -31,9 +35,10 @@ public class APFSSuperBlock {
     public int nx_max_file_systems;
     public long nx_fs_oid;
 
-    public APFSSuperBlock(ByteBuffer buffer){
+    public APFSContainer(ByteBuffer buffer){
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
         blockHeader = new BlockHeader(buffer.slice(0,32));
-        buffer.position(buffer.position()+32);
+        buffer.position(32);
         buffer.get(magic);
         nx_block_size = buffer.getInt();
         nx_block_count = buffer.getLong();
@@ -61,14 +66,13 @@ public class APFSSuperBlock {
         nx_fs_oid = buffer.getLong();
     }
 
-    public static APFSSuperBlock parseImage(String path) throws IOException {
-        FileInputStream fis = new FileInputStream(path);
-        fis.getChannel().position(14);
+    public static APFSContainer parseImage(String path) throws IOException {
+        RandomAccessFile ras = new RandomAccessFile(path, "r");
         byte[] superBlockBytes = new byte[512];
-        fis.read(superBlockBytes);
+        ras.read(superBlockBytes);
         System.out.println(Utils.OriginalBytesToHexString(superBlockBytes));
         ByteBuffer buffer = ByteBuffer.wrap(superBlockBytes);
-        APFSSuperBlock block = new APFSSuperBlock(buffer);
+        APFSContainer block = new APFSContainer(buffer);
         return block;
     }
 
@@ -102,37 +106,6 @@ public class APFSSuperBlock {
                 ", nx_test_type=" + nx_test_type +
                 ", nx_max_file_systems=" + nx_max_file_systems +
                 ", nx_fs_oid=" + nx_fs_oid +
-                '}';
-    }
-}
-
-
-class BlockHeader {
-    public long checksum;
-    public long	block_id;
-    public long	version;
-    public short block_type;
-    public short flags;
-    public int padding;
-
-    public BlockHeader(ByteBuffer buffer){
-        checksum = buffer.getLong();
-        block_id = buffer.getLong();
-        version = buffer.getLong();
-        block_type = buffer.getShort();
-        flags = buffer.getShort();
-        padding = buffer.getInt();
-    }
-
-    @Override
-    public String toString() {
-        return "BlockHeader{" +
-                "checksum=" + checksum +
-                ", block_id=" + block_id +
-                ", version=" + version +
-                ", block_type=" + block_type +
-                ", flags=" + flags +
-                ", padding=" + padding +
                 '}';
     }
 }

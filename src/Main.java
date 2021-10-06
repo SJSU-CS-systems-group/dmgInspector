@@ -1,9 +1,11 @@
+import apfs.APFSContainer;
+
 import java.io.IOException;
 
 public class Main {
 
     public static void main(String[] args) throws IOException {
-//        String imgPath = Utils.chooseImagePath();
+//        String imgPath = utils.Utils.chooseImagePath();
 //        MBRPartitionTable partitionTable = MBRPartitionTable.parseImage(imgPath);
 //
 //        // Determine MBR or GPT
@@ -18,8 +20,8 @@ public class Main {
 //        String dmgFile = "src/images/bigandsmall.dmg";
 //        DMGInspector dmgInspector = DMGInspector.parseImage(dmgFile);
 
-        String filepath = "output/decompressed4";
-        APFSSuperBlock apfsSuperBlock = APFSSuperBlock.parseImage(filepath);
+        String filepath = "src/images/4.Apple_APFS";
+        APFSContainer apfsSuperBlock = APFSContainer.parseImage(filepath);
         System.out.println(apfsSuperBlock);
 
 

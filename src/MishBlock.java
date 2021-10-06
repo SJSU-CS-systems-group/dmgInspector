@@ -64,7 +64,7 @@ public class MishBlock {
 //        for (int i = 0; i < NumberOfBlockChunks; i++) {
 //            System.out.println("\t\t" + blkxChunkEntries[i]);
 //        }
-//        System.out.println(Utils.OriginalBytesToHexString(everythingElse));
+//        System.out.println(utils.Utils.OriginalBytesToHexString(everythingElse));
     }
 
     public BLKXChunkEntry[] getBlkxChunkEntries() {
