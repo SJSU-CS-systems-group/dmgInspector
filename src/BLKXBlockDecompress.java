@@ -10,6 +10,8 @@ public class BLKXBlockDecompress {
         if (block.EntryType != 0x80000005) // hex code for zlib compression
             throw new Exception("Non-zLib compressed bytes with type " + String.format("%08X", block.EntryType) + ". Skipping decompression.");
 
+        System.out.println(block);
+
         ByteBuffer compressedChunkBytesBuffer = dataForkBuffer.slice((int) block.CompressedOffset, (int) block.CompressedLength);
         System.out.println(compressedChunkBytesBuffer.remaining());
         byte[] compressedBytes = new byte[compressedChunkBytesBuffer.remaining()];
@@ -18,7 +20,9 @@ public class BLKXBlockDecompress {
         Inflater decompresser = new Inflater();
         decompresser.setInput(compressedBytes, 0, compressedBytes.length);
         byte[] result = new byte[(int) block.SectorCount * SECTOR_SIZE];
+        System.out.println(result.length);
         int resultLength = decompresser.inflate(result);
+        System.out.println(resultLength);
         decompresser.end();
         String outputString = new String(result, 0, resultLength, "UTF-8");
         return outputString;

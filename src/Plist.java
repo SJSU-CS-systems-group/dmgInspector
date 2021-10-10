@@ -37,20 +37,22 @@ public class Plist {
                 // DECOMPRESS
                 MishBlock.BLKXChunkEntry[] blkxChunks = block.getBlkxChunkEntries();
 
-                String fileName = i + "_"+cfNames.get(i).replaceAll("[\\(\\):\s]", "");
+                String fileName = i + "_" + cfNames.get(i).replaceAll("[\\(\\):\s]", "");
                 String pathName = decompressedOutputFolder.getCanonicalPath() + File.separator + fileName;
                 File decompressedMishFile = new File(pathName);
                 FileWriter decompressedChunkWriter = new FileWriter(decompressedMishFile.getAbsolutePath());
 
                 if (blkxChunks.length > 0) {
+                    String decompressedData = "";
                     for (int chunkIndex = 0; chunkIndex < blkxChunks.length; chunkIndex++) {
                         try {
                             String decompressedChunk = BLKXBlockDecompress.decompressBLKXBlock(dataForkBuffer, blkxChunks[chunkIndex]);
-                            decompressedChunkWriter.write(decompressedChunk);
+                            decompressedData += decompressedChunk;
                         } catch (Exception e) {
                             System.out.println(e);
                         }
                     }
+                    decompressedChunkWriter.write(decompressedData);
                 }
 
                 decompressedChunkWriter.close();

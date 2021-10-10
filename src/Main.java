@@ -20,7 +20,8 @@ public class Main {
 //        String dmgFile = "src/images/bigandsmall.dmg";
 //        DMGInspector dmgInspector = DMGInspector.parseImage(dmgFile);
 
-        String filepath = "src/images/4.Apple_APFS";
+//        String filepath = "src/apfs/4.Apple_APFS";   // This is what our APFS file should look like. This works with our APFS inspector.
+        String filepath = "output/4_diskimageApple_APFS4"; // This is our incorrectly decompressed APFS file -- TODO: Fix DMG decompression
         APFSContainer apfsSuperBlock = APFSContainer.parseImage(filepath);
         System.out.println(apfsSuperBlock);
 

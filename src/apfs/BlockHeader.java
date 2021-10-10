@@ -28,7 +28,7 @@ public class BlockHeader {
                 ", block_id=" + block_id +
                 ", version=" + version +
                 ", block_type=" + block_type +
-                ", flags=" + flags +
+                ", flags=" + Short.toUnsignedInt(flags) +
                 ", padding=" + padding +
                 '}';
     }
