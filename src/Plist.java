@@ -7,8 +7,11 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
@@ -40,19 +43,17 @@ public class Plist {
                 String fileName = i + "_" + cfNames.get(i).replaceAll("[\\(\\):\s]", "");
                 String pathName = decompressedOutputFolder.getCanonicalPath() + File.separator + fileName;
                 File decompressedMishFile = new File(pathName);
-                FileWriter decompressedChunkWriter = new FileWriter(decompressedMishFile.getAbsolutePath());
+                FileOutputStream decompressedChunkWriter = new FileOutputStream(decompressedMishFile.getAbsolutePath());
 
                 if (blkxChunks.length > 0) {
-                    String decompressedData = "";
                     for (int chunkIndex = 0; chunkIndex < blkxChunks.length; chunkIndex++) {
                         try {
-                            String decompressedChunk = BLKXBlockDecompress.decompressBLKXBlock(dataForkBuffer, blkxChunks[chunkIndex]);
-                            decompressedData += decompressedChunk;
+                            byte[] decompressedBytes = BLKXBlockDecompress.decompressBLKXBlock(dataForkBuffer, blkxChunks[chunkIndex]);
+                            decompressedChunkWriter.write(decompressedBytes);
                         } catch (Exception e) {
                             System.out.println(e);
                         }
                     }
-                    decompressedChunkWriter.write(decompressedData);
                 }
 
                 decompressedChunkWriter.close();
