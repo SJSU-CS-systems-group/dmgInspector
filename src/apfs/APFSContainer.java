@@ -1,6 +1,7 @@
 package apfs;
 
 import utils.Utils;
+
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
@@ -35,15 +36,16 @@ public class APFSContainer {
     public int nx_max_file_systems;
     public long nx_fs_oid;
 
-    public APFSContainer(ByteBuffer buffer){
+    public APFSContainer(ByteBuffer buffer) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
-        blockHeader = new BlockHeader(buffer.slice(0,32));
+        blockHeader = new BlockHeader(buffer.slice(0, 32));
         buffer.position(32);
         buffer.get(magic);
         nx_block_size = buffer.getInt();
         nx_block_count = buffer.getLong();
         nx_features = buffer.getLong();
-        nx_read_only_compatible_features = buffer.getLong();;
+        nx_read_only_compatible_features = buffer.getLong();
+        ;
         nx_incompatable_features = buffer.getLong();
         buffer.get(nx_uuid);
         nx_next_oid = buffer.getLong();
@@ -66,12 +68,8 @@ public class APFSContainer {
         nx_fs_oid = buffer.getLong();
     }
 
-    public static APFSContainer parseImage(String path) throws IOException {
-        RandomAccessFile ras = new RandomAccessFile(path, "r");
-        byte[] superBlockBytes = new byte[512];
-        ras.read(superBlockBytes);
-        System.out.println(Utils.OriginalBytesToHexString(superBlockBytes));
-        ByteBuffer buffer = ByteBuffer.wrap(superBlockBytes);
+    public static APFSContainer parseContainer(String path) throws IOException {
+        ByteBuffer buffer = Utils.GetBuffer(path, 0, 512);
         APFSContainer block = new APFSContainer(buffer);
         return block;
     }

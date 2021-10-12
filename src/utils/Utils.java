@@ -1,15 +1,16 @@
 package utils;
 
+import apfs.APFSVolume;
+
 import javax.swing.*;
-import java.io.File;
-import java.io.FileInputStream;
-import java.io.FileNotFoundException;
-import java.io.IOException;
+import java.io.*;
+import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 
 public class Utils {
     public static String[] partitionType = new String[256];
+
     static {
         partitionType[0] = "unused";
         partitionType[12] = "FAT32";
@@ -44,7 +45,7 @@ public class Utils {
         return p.getFileName().toString();
     }
 
-    public static String getPartitionType(byte id){
+    public static String getPartitionType(byte id) {
         return Utils.partitionType[id & 0xff];
 
     }
@@ -91,5 +92,14 @@ public class Utils {
             sb.append(String.format("%02X ", b));
         }
         return sb.toString();
+    }
+
+    public static ByteBuffer GetBuffer(String pathname, int offset, int length) throws FileNotFoundException, IOException {
+        RandomAccessFile ras = new RandomAccessFile(pathname, "r");
+        ras.seek(offset);
+        byte[] superBlockBytes = new byte[length];
+        ras.read(superBlockBytes);
+        ByteBuffer buffer = ByteBuffer.wrap(superBlockBytes);
+        return buffer;
     }
 }

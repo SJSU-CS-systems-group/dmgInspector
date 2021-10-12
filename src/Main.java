@@ -1,3 +1,4 @@
+import apfs.APFS;
 import apfs.APFSContainer;
 
 import java.io.IOException;
@@ -21,11 +22,7 @@ public class Main {
 //        DMGInspector dmgInspector = DMGInspector.parseImage(dmgFile);
 
         String filepath = "output/4_diskimageApple_APFS4";
-        APFSContainer apfsSuperBlock = APFSContainer.parseImage(filepath);
-        System.out.println(apfsSuperBlock);
-
-
-
-
+        APFS apfs = new APFS(filepath);
+        System.out.println(apfs);
     }
 }
