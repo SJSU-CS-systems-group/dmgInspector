@@ -28,6 +28,9 @@ public class APFS {
         BlockHeader rootNodeHeader = new BlockHeader(nodeBuffer);
         System.out.println(rootNodeHeader);
 
+        BTreeNode rootNode = new BTreeNode(nodeBuffer);
+        System.out.println(rootNode);
+
         // 3. Parse B-Tree structure
         // Try contiguous space after root node?
         // Use node size and node count as specified by root node BTree Info
