@@ -6,6 +6,7 @@ import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.nio.charset.Charset;
 import java.util.Arrays;
 
 public class APFSVolume {
@@ -116,6 +117,16 @@ public class APFSVolume {
 
     public static APFSVolume parseVolume(String path, int volumeOffset, int volumeLength) throws IOException {
         ByteBuffer buffer = Utils.GetBuffer(path, volumeOffset, volumeLength);
+        ByteBuffer buffer2 = Utils.GetBuffer(path, volumeOffset, volumeLength);
+        // 1. Find the OMAP
+        byte[] b = new byte[buffer2.remaining()];
+        buffer2.get(b);
+        System.out.println(b);
+
+        // 2. Parse the OMAP to a BTree
+
+        // 3. Plug in Volume OID to get volume offset!
+
         APFSVolume block = new APFSVolume(buffer);
         return block;
     }
