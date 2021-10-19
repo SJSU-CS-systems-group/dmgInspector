@@ -2,10 +2,12 @@ package apfs;
 
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayList;
 import java.util.Arrays;
 
 public class BTreeNode {
     public static final int BTREE_KEY_LENGTH = 8;
+    public static final int BTREE_TOC_LENGTH = 8;
     public short btn_flags;
     public short btn_level;
     public int btn_nkeys;
@@ -18,7 +20,6 @@ public class BTreeNode {
     public short btn_val_free_list_off;
     public short btn_val_free_list_len;
     public BTreeTOC bTreeTOC;
-    public BTreeKey[] bTreeKeys;
 
     public BTreeNode(ByteBuffer buffer){
         buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -33,13 +34,12 @@ public class BTreeNode {
         btn_key_free_list_len = buffer.getShort();
         btn_val_free_list_off = buffer.getShort();
         btn_val_free_list_len = buffer.getShort();
+
+        buffer.position(buffer.position() + btn_table_space_off);
         bTreeTOC = new BTreeTOC(buffer);
-        buffer.position(buffer.position()+btn_key_free_list_len);
-        int numBTreeNodeKeys = bTreeTOC.key_length/BTREE_KEY_LENGTH;
-        bTreeKeys = new BTreeKey[numBTreeNodeKeys];
-        for (int i = 0; i < numBTreeNodeKeys; i++) {
-            bTreeKeys[i] = new BTreeKey(buffer);
-        }
+        buffer.position(buffer.position() + btn_table_space_len - BTREE_TOC_LENGTH);
+
+
     }
 
     @Override
@@ -57,7 +57,6 @@ public class BTreeNode {
                 ", btn_val_free_list_off=" + btn_val_free_list_off +
                 ", btn_val_free_list_len=" + btn_val_free_list_len +
                 ", bTreeTOC=" + bTreeTOC +
-                ", bTreeKeys=" + Arrays.toString(bTreeKeys) +
                 '}';
     }
 }
