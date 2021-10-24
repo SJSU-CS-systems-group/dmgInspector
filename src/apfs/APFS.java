@@ -18,7 +18,8 @@ public class APFS {
         // TODO: Later: Find BTree using actual oid from omap_phys_t structure
         // IMPORTANT: this +1 likely only works for our test case
         long btree_omap_oid = (containerSb.nx_omap_oid + 1) * containerSb.nx_block_size;
-        ByteBuffer nodeBuffer = Utils.GetBuffer(pathname, (int) btree_omap_oid, 1000);
+        // the length 1000 is a random no. big enough for now.. Change later to actual no
+        ByteBuffer nodeBuffer = Utils.GetBuffer(pathname, (int) btree_omap_oid, 4096);
 
         // Expected Bytes: B0 74 1F 1E
 //        byte[] nodeBytes = new byte[nodeBuffer.remaining()];
@@ -31,9 +32,7 @@ public class APFS {
         BTreeNode rootNode = new BTreeNode(nodeBuffer);
         System.out.println(rootNode);
 
-        // 3. Parse B-Tree structure
-        // Try contiguous space after root node?
-        // Use node size and node count as specified by root node BTree Info
+
 
         // TODO: Find Volume Superblock using an offset from the Container Superblock.
         // IMPORTANT: The following volume superblock uses the incorrect offset. We need to fix this.
