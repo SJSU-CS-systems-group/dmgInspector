@@ -40,7 +40,7 @@ public class Plist {
                 // DECOMPRESS
                 MishBlock.BLKXChunkEntry[] blkxChunks = block.getBlkxChunkEntries();
 
-                String fileName = i + "_" + cfNames.get(i).replaceAll("[\\(\\):\s]", "");
+                String fileName = i + "_" + cfNames.get(i).replaceAll("[\\(\\):\\s]", "");
                 String pathName = decompressedOutputFolder.getCanonicalPath() + File.separator + fileName;
                 File decompressedMishFile = new File(pathName);
                 FileOutputStream decompressedChunkWriter = new FileOutputStream(decompressedMishFile.getAbsolutePath());
