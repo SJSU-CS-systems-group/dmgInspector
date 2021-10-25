@@ -33,10 +33,20 @@ public class APFS {
         System.out.println(rootNode);
 
 
-
         // TODO: Find Volume Superblock using an offset from the Container Superblock.
         // IMPORTANT: The following volume superblock uses the incorrect offset. We need to fix this.
 //        volumeSb = APFSVolume.parseVolume(pathname, (int) (containerSb.nx_next_oid * containerSb.nx_block_size), containerSb.nx_block_size);
+        ByteBuffer volumeSbBuffer = Utils.GetBuffer(pathname, (int) rootNode.volume_superb_offset * 4096, 4096);
+
+        byte[] bytes = new byte[volumeSbBuffer.remaining()];
+
+        System.out.println(
+
+
+                Utils.OriginalBytesToHexString(bytes)
+        );
+        APFSVolume volumeSb = new APFSVolume(volumeSbBuffer);
+        System.out.println(volumeSb);
     }
 
     @Override

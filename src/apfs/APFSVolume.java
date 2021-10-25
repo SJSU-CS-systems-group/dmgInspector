@@ -11,7 +11,7 @@ import java.util.Arrays;
 
 public class APFSVolume {
     public BlockHeader blockHeader;
-    public int apfs_magic;
+    public byte[] apfs_magic = new byte[4];
     public int apfs_fs_index;
     public long apfs_features;
     public long apfs_readonly_compatible_features;
@@ -64,7 +64,7 @@ public class APFSVolume {
     public APFSVolume(ByteBuffer buffer) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         blockHeader = new BlockHeader(buffer);
-        apfs_magic = buffer.getInt();
+        buffer.get(apfs_magic);
         apfs_fs_index = buffer.getInt();
         apfs_features = buffer.getLong();
         apfs_readonly_compatible_features = buffer.getLong();
@@ -135,7 +135,7 @@ public class APFSVolume {
     public String toString() {
         return "APFSVolume{" +
                 "blockHeader=" + blockHeader +
-                ", apfs_magic=" + apfs_magic +
+                ", apfs_magic=" + new String(apfs_magic) +
                 ", apfs_fs_index=" + apfs_fs_index +
                 ", apfs_features=" + apfs_features +
                 ", apfs_readonly_compatible_features=" + apfs_readonly_compatible_features +
