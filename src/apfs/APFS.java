@@ -12,41 +12,34 @@ public class APFS {
     public APFS(String pathname) throws IOException {
         containerSb = APFSContainer.parseContainer(pathname);
 
+        int blockSize = containerSb.nx_block_size;
 
-        // 1. Access BTree Omap via its OID from the Container Superblock
-        // 2. OID OMAP OID + 1 workaround to find BTREE Root Node
-        // TODO: Later: Find BTree using actual oid from omap_phys_t structure
-        // IMPORTANT: this +1 likely only works for our test case
-        long btree_omap_oid = (containerSb.nx_omap_oid + 1) * containerSb.nx_block_size;
-        // the length 1000 is a random no. big enough for now.. Change later to actual no
-        ByteBuffer nodeBuffer = Utils.GetBuffer(pathname, (int) btree_omap_oid, 4096);
+        // 1. Access CSB OMAP via its OID from the Container Superblock
+        ByteBuffer csbOMapBuffer = Utils.GetBuffer(pathname, (int) containerSb.nx_omap_oid * blockSize, blockSize);
+        OMap csbOMap = new OMap(csbOMapBuffer);
 
-        // Expected Bytes: B0 74 1F 1E
-//        byte[] nodeBytes = new byte[nodeBuffer.remaining()];
-//        nodeBuffer.get(nodeBytes);
-//        System.out.println("\n\n" + Utils.OriginalBytesToHexString(nodeBytes));
-
-        BlockHeader rootNodeHeader = new BlockHeader(nodeBuffer);
+        // 2. Find the CSB BTree using an OID provided by the CSB OMAP
+        ByteBuffer rootNodeBuffer = Utils.GetBuffer(pathname, (int) csbOMap.om_tree_oid * blockSize, blockSize);
+        BlockHeader rootNodeHeader = new BlockHeader(rootNodeBuffer);
         System.out.println(rootNodeHeader);
 
-        BTreeNode rootNode = new BTreeNode(nodeBuffer);
+        BTreeNode rootNode = new BTreeNode(rootNodeBuffer);
         System.out.println(rootNode);
 
-
-        // TODO: Find Volume Superblock using an offset from the Container Superblock.
-        // IMPORTANT: The following volume superblock uses the incorrect offset. We need to fix this.
-//        volumeSb = APFSVolume.parseVolume(pathname, (int) (containerSb.nx_next_oid * containerSb.nx_block_size), containerSb.nx_block_size);
-        ByteBuffer volumeSbBuffer = Utils.GetBuffer(pathname, (int) rootNode.volume_superb_offset * 4096, 4096);
-
+        // 3. Parse the Volume Superblock using info from the CSB BTree
+        // TODO: Write general case to parse keys & values
+        ByteBuffer volumeSbBuffer = Utils.GetBuffer(pathname, (int) rootNode.volume_superb_offset * blockSize, blockSize);
         byte[] bytes = new byte[volumeSbBuffer.remaining()];
-
-        System.out.println(
-
-
-                Utils.OriginalBytesToHexString(bytes)
-        );
         APFSVolume volumeSb = new APFSVolume(volumeSbBuffer);
         System.out.println(volumeSb);
+
+        // 4. Parse VSB OMap
+        ByteBuffer vsbOMapBuffer = Utils.GetBuffer(pathname, (int) volumeSb.apfs_omap_oid * blockSize, blockSize);
+        System.out.println("RIGHT HERE");
+        OMap vsbOMap = new OMap(vsbOMapBuffer);
+        System.out.println(vsbOMap);
+
+        // 5. Parse VSB B-Tree
     }
 
     @Override
