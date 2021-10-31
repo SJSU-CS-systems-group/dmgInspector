@@ -1,15 +1,15 @@
 package apfs;
 
-import utils.Utils;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Arrays;
 
 public class BTreeNode {
+
     public static final int BTREE_KEY_LENGTH = 8;
     public static final int BTREE_TOC_LENGTH = 8;
+
+    public BlockHeader btn_o;
     public short btn_flags;
     public short btn_level;
     public int btn_nkeys;
@@ -23,11 +23,12 @@ public class BTreeNode {
     public short btn_val_free_list_len;
     public ArrayList bTreeTOC = new ArrayList();
     // paddr_t of omap_val_t of BTree root node
-    public long volume_superb_offset;
+    // TODO: Parse keys & values properly
+    public long first_value_offset;
 
     public BTreeNode(ByteBuffer buffer){
         buffer.order(ByteOrder.LITTLE_ENDIAN);
-        // TODO: Object header being stored before the BTreeNode object being called
+        btn_o = new BlockHeader(buffer);
         btn_flags = buffer.getShort();
         btn_level = buffer.getShort();
         btn_nkeys = buffer.getInt();
@@ -59,7 +60,7 @@ public class BTreeNode {
         System.out.println(bTreeValue);
         BTreeInfo bTreeInfo = new BTreeInfo(buffer);
         System.out.println(bTreeInfo);
-        volume_superb_offset = bTreeValue.paddr_t;
+        first_value_offset = bTreeValue.paddr_t;
 
 
 

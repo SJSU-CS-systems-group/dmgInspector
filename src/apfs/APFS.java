@@ -20,26 +20,34 @@ public class APFS {
 
         // 2. Find the CSB BTree using an OID provided by the CSB OMAP
         ByteBuffer rootNodeBuffer = Utils.GetBuffer(pathname, (int) csbOMap.om_tree_oid * blockSize, blockSize);
-        BlockHeader rootNodeHeader = new BlockHeader(rootNodeBuffer);
-        System.out.println(rootNodeHeader);
-
         BTreeNode rootNode = new BTreeNode(rootNodeBuffer);
         System.out.println(rootNode);
 
         // 3. Parse the Volume Superblock using info from the CSB BTree
         // TODO: Write general case to parse keys & values
-        ByteBuffer volumeSbBuffer = Utils.GetBuffer(pathname, (int) rootNode.volume_superb_offset * blockSize, blockSize);
-        byte[] bytes = new byte[volumeSbBuffer.remaining()];
+        ByteBuffer volumeSbBuffer = Utils.GetBuffer(pathname, (int) rootNode.first_value_offset * blockSize, blockSize);
         APFSVolume volumeSb = new APFSVolume(volumeSbBuffer);
         System.out.println(volumeSb);
 
         // 4. Parse VSB OMap
         ByteBuffer vsbOMapBuffer = Utils.GetBuffer(pathname, (int) volumeSb.apfs_omap_oid * blockSize, blockSize);
-        System.out.println("RIGHT HERE");
         OMap vsbOMap = new OMap(vsbOMapBuffer);
         System.out.println(vsbOMap);
 
         // 5. Parse VSB B-Tree
+        ByteBuffer vsbRootNodeBuffer = Utils.GetBuffer(pathname, (int) vsbOMap.om_tree_oid * blockSize, blockSize);
+        BTreeNode vsbRootNode = new BTreeNode(vsbRootNodeBuffer);
+        System.out.println(vsbRootNode);
+
+        // 6. Parse the Root B-Tree using VSB B-Tree's first value (we know it's the value corresponding to the entry with a key equal to btree_root_oid)
+        // This is the B-Tree of Inodes.
+        // TODO: Again, we need to make a general case for parsing keys & values instead of getting just the first value
+        ByteBuffer rootBTreeBuffer = Utils.GetBuffer(pathname, (int) vsbRootNode.first_value_offset * blockSize, blockSize);
+        BTreeNode rootBTreeRootNode = new BTreeNode(rootBTreeBuffer);
+        System.out.println("RIGHT HERE");
+        System.out.println(rootBTreeRootNode);
+
+        // 7. TODO: Parse Inodes
     }
 
     @Override
