@@ -1,7 +1,5 @@
 package apfs;
 
-import utils.Utils;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -11,6 +9,7 @@ public class BTreeNode {
 
     public static final int BTREE_KEY_LENGTH = 8;
     public static final int BTREE_TOC_LENGTH = 8;
+    public static final int BTREE_VALUE_LENGTH = 16;
 
     public BlockHeader btn_o;
     public short btn_flags;
@@ -33,8 +32,11 @@ public class BTreeNode {
     public ArrayList<BTreeValue> bTreeValues = new ArrayList<BTreeValue>();
 
 
-    public BTreeNode(ByteBuffer buffer){
+    public BTreeNode(ByteBuffer buffer) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
+
+        int start_of_node = buffer.position();
+
         btn_o = new BlockHeader(buffer);
         btn_flags = buffer.getShort();
         mapFlags();
@@ -50,51 +52,52 @@ public class BTreeNode {
         btn_val_free_list_len = buffer.getShort();
 
         buffer.position(buffer.position() + btn_table_space_off);
-        for(int i=0;i<btn_table_space_len/BTREE_TOC_LENGTH; i++){
-            if (i<btn_nkeys)
-                bTreeTOC.add(new BTreeTOCEntry(buffer));
-            else
-                new BTreeTOCEntry(buffer);
+        for (int i = 0; i < btn_table_space_len / BTREE_TOC_LENGTH; i++) {
+            BTreeTOCEntry entry = new BTreeTOCEntry(buffer);
+            if (i < btn_nkeys)
+                bTreeTOC.add(entry);
         }
-        System.out.println(bTreeTOC);
+//        System.out.println(bTreeTOC);
 
-        int btn_info_t_pos = (btn_nkeys * 16) + btn_key_free_list_len + btn_freespace_len + btn_val_free_list_len + (btn_nkeys * 16);
-        //BTreeKey bTreeKey = new BTreeKey(buffer);
-        //System.out.println(bTreeKey);
-         //Setting buffer position to start of btree_info_t
-//        buffer.position(buffer.position()+ btn_info_t_pos - ((btn_nkeys * 16) + (btn_nkeys * 16)));
-//        BTreeValue bTreeValue = new BTreeValue(buffer);
-//        System.out.println(bTreeValue);
-//        BTreeInfo bTreeInfo = new BTreeInfo(buffer);
-//        System.out.println(bTreeInfo);
-        //first_value_offset = bTreeValue.paddr_t;
-        for(BTreeTOCEntry b : bTreeTOC){
-            System.out.println(b.key_offset+ ", "+ b.key_length);
-            buffer.position(buffer.position() + b.key_offset);
+        // remember the key start position -- key offsets are calculated relative to this position
+        int key_start_pos = buffer.position();
+//        System.out.println(key_start_pos);
+        for (BTreeTOCEntry b : bTreeTOC) {
+//            System.out.println(b.key_offset+ ", "+ b.key_length);
+            buffer.position(key_start_pos + b.key_offset);
             bTreeKeys.add(new BTreeKey(buffer));
         }
         // add key free list space
         buffer.position(buffer.position() + btn_key_free_list_len + btn_freespace_len + btn_val_free_list_len);
-        for(int i=bTreeTOC.size()-1; i>=0; i--){
-            BTreeTOCEntry b = bTreeTOC.get(i);
-            System.out.println(b.value_offset+ ", "+ b.value_length);
+
+        // TODO: 4096 skip to track values area
+        int value_start_pos = start_of_node + 4096 - 40;
+//        System.out.println(start_of_node);
+//        System.out.println(value_start_pos);
+        for (BTreeTOCEntry b : bTreeTOC) {
+//            System.out.println(b.value_offset+ ", "+ b.value_length);
+            // TODO: Are we using value length properly? e.g. some values have length 16 while others might have 32.... FIX ME
+            buffer.position(value_start_pos - b.value_offset - BTREE_VALUE_LENGTH);
             bTreeValues.add(new BTreeValue(buffer));
-            buffer.position(buffer.position() + b.value_offset);
+            buffer.position(value_start_pos - b.value_offset - BTREE_VALUE_LENGTH);
+            byte[] bytes = new byte[b.value_length];
+            buffer.get(bytes);
+//            System.out.println(Utils.OriginalBytesToHexString(bytes));
         }
         Collections.reverse(bTreeValues);
 
 
-
-
-
+        buffer.position(value_start_pos);
+        BTreeInfo bTreeInfo = new BTreeInfo(buffer);
     }
 
-    private void mapFlags(){
+    private void mapFlags() {
         btn_flags_is_root = (btn_flags & 1) > 0;
         btn_flags_is_leaf = (btn_flags & 2) > 0;
         btn_flags_is_fixed_KV_size = (btn_flags & 4) > 0;
         btn_flags_is_hashed = (btn_flags & 8) > 0;
     }
+
 
     @Override
     public String toString() {
@@ -169,7 +172,7 @@ class BTreeTOCEntry {
     public short value_offset;
     public short value_length;
 
-    public BTreeTOCEntry(ByteBuffer buffer){
+    public BTreeTOCEntry(ByteBuffer buffer) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         key_offset = buffer.getShort();
         key_length = buffer.getShort();
@@ -208,11 +211,11 @@ class BTreeTOCEntry {
 //    }
 //}
 
-class BTreeKey{
+class BTreeKey {
     long ok_oid;
     long ok_xid;
 
-    public BTreeKey(ByteBuffer buffer){
+    public BTreeKey(ByteBuffer buffer) {
         ok_oid = buffer.getLong();
         ok_xid = buffer.getLong();
     }
@@ -226,12 +229,12 @@ class BTreeKey{
     }
 }
 
-class BTreeValue{
+class BTreeValue {
     int ov_flags;
     int ov_size;
     long paddr_t;
 
-    public BTreeValue(ByteBuffer buffer){
+    public BTreeValue(ByteBuffer buffer) {
         ov_flags = buffer.getInt();
         ov_size = buffer.getInt();
         paddr_t = buffer.getLong();
@@ -248,14 +251,14 @@ class BTreeValue{
 }
 
 
-class BTreeInfo{
+class BTreeInfo {
     BTreeInfoFixed bTreeInfoFixed;
     int bt_longest_key;
     int bt_longest_val;
     long bt_key_count;
     long bt_node_count;
 
-    public BTreeInfo(ByteBuffer buffer){
+    public BTreeInfo(ByteBuffer buffer) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         bTreeInfoFixed = new BTreeInfoFixed(buffer);
         bt_longest_key = buffer.getInt();
@@ -282,7 +285,7 @@ class BTreeInfoFixed {
     int bt_key_size;
     int bt_val_size;
 
-    public BTreeInfoFixed(ByteBuffer buffer){
+    public BTreeInfoFixed(ByteBuffer buffer) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         bt_flags = buffer.getInt();
         bt_node_size = buffer.getInt();
