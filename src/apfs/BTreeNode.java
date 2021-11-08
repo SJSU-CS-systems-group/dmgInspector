@@ -1,5 +1,6 @@
 package apfs;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -61,14 +62,19 @@ public class BTreeNode {
 
         // remember the key start position -- key offsets are calculated relative to this position
         int key_start_pos = buffer.position();
-//        System.out.println(key_start_pos);
+        System.out.println(key_start_pos);
         for (BTreeTOCEntry b : bTreeTOC) {
 //            System.out.println(b.key_offset+ ", "+ b.key_length);
             buffer.position(key_start_pos + b.key_offset);
             bTreeKeys.add(new BTreeKey(buffer));
+
+            int endPos = buffer.position();
+
+            buffer.position(key_start_pos + b.key_offset);
+            FSKeyHeader kh = new FSKeyHeader(buffer);
+            System.out.println(kh);
+            buffer.position(endPos);
         }
-        // add key free list space
-        buffer.position(buffer.position() + btn_key_free_list_len + btn_freespace_len + btn_val_free_list_len);
 
         // TODO: 4096 skip to track values area
         int value_start_pos = start_of_node + 4096 - 40;
@@ -210,6 +216,39 @@ class BTreeTOCEntry {
 //                '}';
 //    }
 //}
+
+
+// Variable-length key FS Objects from APFS reference pg. 71
+interface FSObject {
+
+}
+
+// j_key_t structure from APFS reference pg. 72
+class FSKeyHeader {
+    public static final BigInteger OBJ_ID_MASK = new BigInteger("0fffffffffffffff", 16);
+    public static final BigInteger OBJ_TYPE_MASK = new BigInteger("f000000000000000", 16);
+    public static final int OBJ_TYPE_SHIFT = 60;
+    public static final BigInteger SYSTEM_OBJ_ID_MARK = new BigInteger("0fffffff00000000", 16);
+
+    long obj_id_and_type;
+    long obj_type;
+
+    public FSKeyHeader(ByteBuffer buffer) {
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+
+        obj_id_and_type = buffer.getLong();
+        obj_type = OBJ_TYPE_MASK.and(BigInteger.valueOf(obj_id_and_type)).shiftRight(OBJ_TYPE_SHIFT).longValue();
+    }
+
+    @Override
+    public String toString() {
+        return "FSKeyHeader{" +
+                "obj_id_and_type=" + Long.toUnsignedString(obj_id_and_type) +
+                ", obj_type=" + obj_type +
+                '}';
+    }
+}
+
 
 class BTreeKey {
     long ok_oid;
