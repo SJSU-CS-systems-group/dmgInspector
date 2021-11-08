@@ -74,6 +74,13 @@ public class BTreeNode {
             FSKeyHeader kh = new FSKeyHeader(buffer);
             System.out.println(kh);
             buffer.position(endPos);
+
+            if (kh.obj_type == 9) {
+                buffer.position(key_start_pos + b.key_offset);
+                DRECKey key = new DRECKey(buffer);
+                System.out.println(key);
+                buffer.position(endPos);
+            }
         }
 
         // TODO: 4096 skip to track values area
@@ -250,23 +257,8 @@ class FSKeyHeader {
 }
 
 
-class BTreeKey {
-    long ok_oid;
-    long ok_xid;
-
-    public BTreeKey(ByteBuffer buffer) {
-        ok_oid = buffer.getLong();
-        ok_xid = buffer.getLong();
-    }
-
-    @Override
-    public String toString() {
-        return "BTreeKey{" +
-                "ok_oid=" + ok_oid +
-                ", ok_xid=" + ok_xid +
-                '}';
-    }
-}
+// TODO: Parse variable-length values (similar to how we're parsing variable-length BTreeKeys)
+// ...
 
 class BTreeValue {
     int ov_flags;
