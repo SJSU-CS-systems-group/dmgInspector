@@ -111,13 +111,18 @@ class INODEKey extends FSObjectKey{
 
 
 class EXTENTKey extends FSObjectKey{
+    public long logicalAddr;
+
     public EXTENTKey(ByteBuffer buffer){
         super(buffer);
+        logicalAddr = buffer.getLong();
     }
 
     @Override
     public String toString() {
-        return super.toString();
+        return "EXTENTKey{" +
+                "logicalAddr=" + logicalAddr +
+                '}';
     }
 }
 

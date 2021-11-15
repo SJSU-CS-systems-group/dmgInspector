@@ -31,6 +31,7 @@ public class BTreeNode {
     public ArrayList<BTreeTOCEntry> bTreeTOC = new ArrayList<BTreeTOCEntry>();
     public ArrayList<BTreeKey> bTreeKeys = new ArrayList<BTreeKey>();
     public ArrayList<FSObjectKey> fsObjectKeys = new ArrayList<>();
+    public ArrayList<FSObjectValue> fsObjectValues = new ArrayList<>();
     public ArrayList<BTreeValue> bTreeValues = new ArrayList<BTreeValue>();
 
 
@@ -68,22 +69,31 @@ public class BTreeNode {
             bTreeKeys.add(new BTreeKey(buffer));
 
             FSObjectKey obj = FSObjectKeyFactory.get(buffer, key_start_pos + b.key_offset);
-            System.out.println(obj);
+            //System.out.println(obj);
             fsObjectKeys.add(obj);
         }
 
         // TODO: 4096 skip to track values area
+//        for (BTreeTOCEntry b : bTreeTOC) {
+//            // TODO: Are we using value length properly? e.g. some values have length 16 while others might have 32.... FIX ME
+//            buffer.position(value_start_pos - b.value_offset - BTREE_VALUE_LENGTH);
+//            bTreeValues.add(new BTreeValue(buffer));
+//            buffer.position(value_start_pos - b.value_offset - BTREE_VALUE_LENGTH);
+//            byte[] bytes = new byte[b.value_length];
+//            buffer.get(bytes);
+////            System.out.println(Utils.OriginalBytesToHexString(bytes));
+//        }
+//        Collections.reverse(bTreeValues);
+
         int value_start_pos = start_of_node + 4096 - 40;
-        for (BTreeTOCEntry b : bTreeTOC) {
-            // TODO: Are we using value length properly? e.g. some values have length 16 while others might have 32.... FIX ME
-            buffer.position(value_start_pos - b.value_offset - BTREE_VALUE_LENGTH);
+        for(int i=0;i<bTreeTOC.size();i++){
+            int start_pos = value_start_pos - bTreeTOC.get(i).value_offset - bTreeTOC.get(i).value_length;
+            buffer.position(start_pos);
             bTreeValues.add(new BTreeValue(buffer));
-            buffer.position(value_start_pos - b.value_offset - BTREE_VALUE_LENGTH);
-            byte[] bytes = new byte[b.value_length];
-            buffer.get(bytes);
-//            System.out.println(Utils.OriginalBytesToHexString(bytes));
+            buffer.position(start_pos);
+            FSObjectValue val = FSObjectValueFactory.get(buffer, start_pos, fsObjectKeys.get(i));
+            fsObjectValues.add(val);
         }
-        Collections.reverse(bTreeValues);
 
 
         buffer.position(value_start_pos);
@@ -119,6 +129,8 @@ public class BTreeNode {
                 ", btn_val_free_list_len=" + btn_val_free_list_len +
                 ", bTreeTOC=" + bTreeTOC +
                 ", bTreeKeys=" + bTreeKeys +
+                ", fsObjectKeys=" + fsObjectKeys +
+                ", fsObjectValues=" + fsObjectValues +
                 ", bTreeValues=" + bTreeValues +
                 '}';
     }
