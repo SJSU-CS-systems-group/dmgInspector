@@ -30,6 +30,7 @@ public class BTreeNode {
     public short btn_val_free_list_len;
     public ArrayList<BTreeTOCEntry> bTreeTOC = new ArrayList<BTreeTOCEntry>();
     public ArrayList<BTreeKey> bTreeKeys = new ArrayList<BTreeKey>();
+    public ArrayList<FSObjectKey> fsObjectKeys = new ArrayList<>();
     public ArrayList<BTreeValue> bTreeValues = new ArrayList<BTreeValue>();
 
 
@@ -58,7 +59,6 @@ public class BTreeNode {
             if (i < btn_nkeys)
                 bTreeTOC.add(entry);
         }
-//        System.out.println(bTreeTOC);
 
         // remember the key start position -- key offsets are calculated relative to this position
         int key_start_pos = buffer.position();
@@ -68,19 +68,9 @@ public class BTreeNode {
             buffer.position(key_start_pos + b.key_offset);
             bTreeKeys.add(new BTreeKey(buffer));
 
-            int endPos = buffer.position();
-
-            buffer.position(key_start_pos + b.key_offset);
-            FSKeyHeader kh = new FSKeyHeader(buffer);
-            System.out.println(kh);
-            buffer.position(endPos);
-
-            if (kh.obj_type == 9) {
-                buffer.position(key_start_pos + b.key_offset);
-                DRECKey key = new DRECKey(buffer);
-                System.out.println(key);
-                buffer.position(endPos);
-            }
+            FSObjectKey obj = FSObjectKeyFactory.get(buffer, key_start_pos + b.key_offset);
+            System.out.println(obj);
+            fsObjectKeys.add(obj);
         }
 
         // TODO: 4096 skip to track values area

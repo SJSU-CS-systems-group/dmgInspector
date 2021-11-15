@@ -23,6 +23,27 @@ class BTreeKey {
 }
 
 
+class FSObjectKeyFactory{
+
+    public static FSObjectKey get(ByteBuffer buffer, int start_position){
+        buffer.position(start_position);
+        FSKeyHeader kh = new FSKeyHeader(buffer);
+        buffer.position(start_position);
+        switch ((int)kh.obj_type) {
+            case 3:
+                return new INODEKey(buffer);
+            case 8:
+                return new EXTENTKey(buffer);
+            case 9:
+                return new DRECKey(buffer);
+            default:
+                return new FSObjectKey(buffer){};
+        }
+    }
+}
+
+
+
 // Variable length keys are FS Objects (see page 71 of APFS Reference)
 abstract class FSObjectKey {
     FSKeyHeader hdr;
@@ -30,7 +51,13 @@ abstract class FSObjectKey {
     public FSObjectKey(ByteBuffer buffer) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         hdr = new FSKeyHeader(buffer);
-        System.out.println(hdr);
+    }
+
+    @Override
+    public String toString() {
+        return "FSObjectKey{" +
+                "hdr=" + hdr +
+                '}';
     }
 }
 
@@ -70,8 +97,29 @@ class DRECKey extends FSObjectKey {
 }
 
 // See object types at APFS refrence pg.84
-// TODO: Parse inode key (3)
-// TODO: Parse extent key (8)
+
+class INODEKey extends FSObjectKey{
+    public INODEKey(ByteBuffer buffer){
+        super(buffer);
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
+}
+
+
+class EXTENTKey extends FSObjectKey{
+    public EXTENTKey(ByteBuffer buffer){
+        super(buffer);
+    }
+
+    @Override
+    public String toString() {
+        return super.toString();
+    }
+}
 
 // Later? (Can ignore for now since we're just interested in parsing Inodes)
 // TODO: Parse x-attr (4)
