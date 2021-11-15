@@ -64,7 +64,6 @@ public class BTreeNode {
         int key_start_pos = buffer.position();
         System.out.println(key_start_pos);
         for (BTreeTOCEntry b : bTreeTOC) {
-//            System.out.println(b.key_offset+ ", "+ b.key_length);
             buffer.position(key_start_pos + b.key_offset);
             bTreeKeys.add(new BTreeKey(buffer));
 
@@ -75,10 +74,7 @@ public class BTreeNode {
 
         // TODO: 4096 skip to track values area
         int value_start_pos = start_of_node + 4096 - 40;
-//        System.out.println(start_of_node);
-//        System.out.println(value_start_pos);
         for (BTreeTOCEntry b : bTreeTOC) {
-//            System.out.println(b.value_offset+ ", "+ b.value_length);
             // TODO: Are we using value length properly? e.g. some values have length 16 while others might have 32.... FIX ME
             buffer.position(value_start_pos - b.value_offset - BTREE_VALUE_LENGTH);
             bTreeValues.add(new BTreeValue(buffer));
@@ -249,27 +245,6 @@ class FSKeyHeader {
 
 // TODO: Parse variable-length values (similar to how we're parsing variable-length BTreeKeys)
 // ...
-
-class BTreeValue {
-    int ov_flags;
-    int ov_size;
-    long paddr_t;
-
-    public BTreeValue(ByteBuffer buffer) {
-        ov_flags = buffer.getInt();
-        ov_size = buffer.getInt();
-        paddr_t = buffer.getLong();
-    }
-
-    @Override
-    public String toString() {
-        return "BTreeValue{" +
-                "ov_flags=" + ov_flags +
-                ", ov_size=" + ov_size +
-                ", paddr_t=" + paddr_t +
-                '}';
-    }
-}
 
 
 class BTreeInfo {
