@@ -30,12 +30,12 @@ class FSObjectValueFactory{
 
     public static FSObjectValue get(ByteBuffer buffer, int start_position, FSObjectKey fsObjectKey){
         buffer.position(start_position);
-        switch (fsObjectKey.getClass().getName()) {
-            case "INODEKey":
+        switch ((int) fsObjectKey.hdr.obj_type) {
+            case 3:
                 return new INODEValue(buffer);
-            case "EXTENTKey":
+            case 8:
                 return new EXTENTValue(buffer);
-            case "DRECKey":
+            case 9:
                 return new DRECValue(buffer);
             default:
                 return null;

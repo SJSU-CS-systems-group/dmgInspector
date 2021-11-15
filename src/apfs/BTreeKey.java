@@ -99,13 +99,16 @@ class DRECKey extends FSObjectKey {
 // See object types at APFS refrence pg.84
 
 class INODEKey extends FSObjectKey{
+    public int test = 0;
     public INODEKey(ByteBuffer buffer){
         super(buffer);
     }
 
     @Override
     public String toString() {
-        return super.toString();
+        return "INODEKey{" +
+                "test=" + test +
+                '}';
     }
 }
 

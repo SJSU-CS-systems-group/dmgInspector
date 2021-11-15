@@ -87,14 +87,16 @@ public class BTreeNode {
 
         int value_start_pos = start_of_node + 4096 - 40;
         for(int i=0;i<bTreeTOC.size();i++){
-            int start_pos = value_start_pos - bTreeTOC.get(i).value_offset - bTreeTOC.get(i).value_length;
-            buffer.position(start_pos);
+            buffer.position(value_start_pos - bTreeTOC.get(i).value_offset - BTREE_VALUE_LENGTH);
             bTreeValues.add(new BTreeValue(buffer));
-            buffer.position(start_pos);
+            int start_pos = value_start_pos - bTreeTOC.get(i).value_offset - bTreeTOC.get(i).value_length;
             FSObjectValue val = FSObjectValueFactory.get(buffer, start_pos, fsObjectKeys.get(i));
             fsObjectValues.add(val);
         }
 
+        for (int i = 0; i < fsObjectKeys.size(); i++) {
+            System.out.println("key = " + fsObjectKeys.get(i) + "\t" + "value=" + fsObjectValues.get(i) + "\n");
+        }
 
         buffer.position(value_start_pos);
         BTreeInfo bTreeInfo = new BTreeInfo(buffer);
@@ -129,8 +131,6 @@ public class BTreeNode {
                 ", btn_val_free_list_len=" + btn_val_free_list_len +
                 ", bTreeTOC=" + bTreeTOC +
                 ", bTreeKeys=" + bTreeKeys +
-                ", fsObjectKeys=" + fsObjectKeys +
-                ", fsObjectValues=" + fsObjectValues +
                 ", bTreeValues=" + bTreeValues +
                 '}';
     }
