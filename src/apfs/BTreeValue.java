@@ -1,8 +1,14 @@
 package apfs;
 
+import utils.Utils;
+
 import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.TimeZone;
 
 public class BTreeValue {
     int ov_flags;
@@ -26,9 +32,9 @@ public class BTreeValue {
 }
 
 
-class FSObjectValueFactory{
+class FSObjectValueFactory {
 
-    public static FSObjectValue get(ByteBuffer buffer, int start_position, FSObjectKey fsObjectKey){
+    public static FSObjectValue get(ByteBuffer buffer, int start_position, FSObjectKey fsObjectKey) {
         buffer.position(start_position);
         switch ((int) fsObjectKey.hdr.obj_type) {
             case 3:
@@ -42,7 +48,6 @@ class FSObjectValueFactory{
         }
     }
 }
-
 
 
 // Variable length keys are FS Objects (see page 71 of APFS Reference)
@@ -66,7 +71,7 @@ class DRECValue implements FSObjectValue {
     public String toString() {
         return "DRECValue{" +
                 "fileId=" + fileId +
-                ", dateAdded=" + dateAdded +
+                ", dateAdded=" + Utils.nanoEpochToDateTime(dateAdded) +
                 ", flags=" + flags +
                 ", xfields=" + xfields +
                 '}';
@@ -74,7 +79,7 @@ class DRECValue implements FSObjectValue {
 }
 
 
-class INODEValue implements FSObjectValue{
+class INODEValue implements FSObjectValue {
     public long parentId;
     public long privateId;
     public long createTime;
@@ -94,7 +99,7 @@ class INODEValue implements FSObjectValue{
     public long uncompressedSize;
     public byte xfields;
 
-    public INODEValue(ByteBuffer buffer){
+    public INODEValue(ByteBuffer buffer) {
         parentId = buffer.getLong();
         privateId = buffer.getLong();
         createTime = buffer.getLong();
@@ -121,10 +126,10 @@ class INODEValue implements FSObjectValue{
         return "INODEValue{" +
                 "parentId=" + parentId +
                 ", privateId=" + privateId +
-                ", createTime=" + createTime +
-                ", modTime=" + modTime +
-                ", changeTime=" + changeTime +
-                ", accessTime=" + accessTime +
+                ", createTime=" + Utils.nanoEpochToDateTime(createTime) +
+                ", modTime=" + Utils.nanoEpochToDateTime(modTime) +
+                ", changeTime=" + Utils.nanoEpochToDateTime(changeTime) +
+                ", accessTime=" + Utils.nanoEpochToDateTime(accessTime) +
                 ", internalFlags=" + internalFlags +
                 ", nChildren=" + nChildren +
                 ", nLink=" + nLink +
@@ -142,7 +147,7 @@ class INODEValue implements FSObjectValue{
 }
 
 
-class EXTENTValue implements FSObjectValue{
+class EXTENTValue implements FSObjectValue {
     public long lenAndKind;
     public long length;
     public long physBlockNum;
@@ -151,7 +156,7 @@ class EXTENTValue implements FSObjectValue{
     public static final BigInteger J_FILE_EXTENT_FLAG_MASK = new BigInteger("ff00000000000000", 16);
     public static final int J_FILE_EXTENT_FLAG_SHIFT = 56;
 
-    public EXTENTValue(ByteBuffer buffer){
+    public EXTENTValue(ByteBuffer buffer) {
         lenAndKind = buffer.getLong();
         length = J_FILE_EXTENT_LEN_MASK.and(BigInteger.valueOf(lenAndKind)).shiftRight(J_FILE_EXTENT_FLAG_SHIFT).longValue();
         physBlockNum = buffer.getLong();

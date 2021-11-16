@@ -89,13 +89,13 @@ public class BTreeNode {
         for(int i=0;i<bTreeTOC.size();i++){
             buffer.position(value_start_pos - bTreeTOC.get(i).value_offset - BTREE_VALUE_LENGTH);
             bTreeValues.add(new BTreeValue(buffer));
-            int start_pos = value_start_pos - bTreeTOC.get(i).value_offset - bTreeTOC.get(i).value_length;
+            int start_pos = value_start_pos - bTreeTOC.get(i).value_offset;
             FSObjectValue val = FSObjectValueFactory.get(buffer, start_pos, fsObjectKeys.get(i));
             fsObjectValues.add(val);
         }
 
         for (int i = 0; i < fsObjectKeys.size(); i++) {
-            System.out.println("key = " + fsObjectKeys.get(i) + "\t" + "value=" + fsObjectValues.get(i) + "\n");
+            System.out.println(i + ". key = " + fsObjectKeys.get(i) + "\t" + "value=" + fsObjectValues.get(i) + "\n");
         }
 
         buffer.position(value_start_pos);

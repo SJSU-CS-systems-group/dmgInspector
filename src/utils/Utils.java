@@ -7,6 +7,9 @@ import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.file.Path;
 import java.nio.file.Paths;
+import java.text.DateFormat;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 public class Utils {
     public static String[] partitionType = new String[256];
@@ -101,5 +104,11 @@ public class Utils {
         ras.read(superBlockBytes);
         ByteBuffer buffer = ByteBuffer.wrap(superBlockBytes);
         return buffer;
+    }
+
+    public static String nanoEpochToDateTime(long nanoEpoch) {
+        Date date = new Date(nanoEpoch / 1_000_000);
+        DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
+        return format.format(date);
     }
 }
