@@ -158,7 +158,7 @@ class EXTENTValue implements FSObjectValue {
 
     public EXTENTValue(ByteBuffer buffer) {
         lenAndKind = buffer.getLong();
-        length = J_FILE_EXTENT_LEN_MASK.and(BigInteger.valueOf(lenAndKind)).shiftRight(J_FILE_EXTENT_FLAG_SHIFT).longValue();
+        length = J_FILE_EXTENT_LEN_MASK.and(BigInteger.valueOf(lenAndKind)).longValue();
         physBlockNum = buffer.getLong();
         cryptoId = buffer.getLong();
     }
