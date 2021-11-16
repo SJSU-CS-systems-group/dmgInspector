@@ -5,6 +5,7 @@ import apfs.APFSVolume;
 import javax.swing.*;
 import java.io.*;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
@@ -110,5 +111,14 @@ public class Utils {
         Date date = new Date(nanoEpoch / 1_000_000);
         DateFormat format = new SimpleDateFormat("dd/MM/yyyy HH:mm:ss");
         return format.format(date);
+    }
+
+    public static void extentRangeToFile(String imagePath, String outPath, long physAddr, long len) throws IOException {
+        System.out.println(physAddr);
+        System.out.println(len);
+        byte[] extentBytes = new byte[(int)len];
+        ByteBuffer buff = GetBuffer(imagePath, (int)physAddr, (int)len);
+        buff.get(extentBytes);
+        System.out.println(new String(extentBytes, StandardCharsets.UTF_8));
     }
 }
