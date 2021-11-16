@@ -4,6 +4,7 @@ import utils.Utils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
+import java.util.HashMap;
 
 public class APFS {
     private APFSContainer containerSb;
@@ -39,11 +40,38 @@ public class APFS {
         BTreeNode vsbRootNode = new BTreeNode(vsbRootNodeBuffer);
         System.out.println(vsbRootNode);
 
-        // 6. TODO: Parse Inodes
+        // 6. Parse FS Object B Tree
+        // TODO: Actually parse B-Tree. We also need to parse OMAP BTrees properly.
         ByteBuffer inodeBTreeRootNodeBuffer = Utils.GetBuffer(pathname, (int) vsbRootNode.bTreeValues.get(0).paddr_t * blockSize, blockSize);
         BTreeNode inodeBTreeRootNode = new BTreeNode(inodeBTreeRootNodeBuffer);
         System.out.println("\n\n\n");
         System.out.println(inodeBTreeRootNode);
+
+        // 7. Organize FS Objects by record object identifiers
+        HashMap<Long, FSKeyValue> inodeRecords = new HashMap<>();
+        HashMap<Long, FSKeyValue> extentRecords = new HashMap<>();
+        HashMap<Long, FSKeyValue> drecRecords = new HashMap<>();
+
+        for (FSKeyValue fskv : inodeBTreeRootNode.fsKeyValues) {
+            int type = (int) fskv.key.hdr.obj_type;
+            switch (type) {
+                case FSObjectKeyFactory.KEY_TYPE_INODE:
+                    inodeRecords.put(fskv.key.hdr.obj_id, fskv);
+                    break;
+                case FSObjectKeyFactory.KEY_TYPE_EXTENT:
+                    extentRecords.put(fskv.key.hdr.obj_id, fskv);
+                    break;
+                case FSObjectKeyFactory.KEY_TYPE_DREC:
+                    drecRecords.put(fskv.key.hdr.obj_id, fskv);
+                    break;
+            }
+        }
+
+        // a. Start parsing from Root Directory -- will always have inode number of 1
+
+
+        // 8. Parse files according to FS Object records
+        // TODO: build directory structure w/ files
     }
 
     @Override
@@ -54,3 +82,12 @@ public class APFS {
                 '}';
     }
 }
+
+// Single Files
+// Map Object Identifier -> Inode Records
+// Map Object Identifier -> Extend Records
+
+// Directories
+// Map Object Identifier -> Drec Records
+
+

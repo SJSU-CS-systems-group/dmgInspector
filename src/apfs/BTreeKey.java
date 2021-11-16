@@ -26,16 +26,20 @@ class BTreeKey {
 
 class FSObjectKeyFactory {
 
+    public static final int KEY_TYPE_INODE = 3;
+    public static final int KEY_TYPE_EXTENT = 8;
+    public static final int KEY_TYPE_DREC = 9;
+
     public static FSObjectKey get(ByteBuffer buffer, int start_position) {
         buffer.position(start_position);
         FSKeyHeader kh = new FSKeyHeader(buffer);
         buffer.position(start_position);
         switch ((int) kh.obj_type) {
-            case 3:
+            case KEY_TYPE_INODE:
                 return new INODEKey(buffer);
-            case 8:
+            case KEY_TYPE_EXTENT:
                 return new EXTENTKey(buffer);
-            case 9:
+            case KEY_TYPE_DREC:
                 return new DRECKey(buffer);
             default:
                 return new FSObjectKey(buffer) {
@@ -109,9 +113,6 @@ class DRECKey extends FSObjectKey {
 
         name_len = name_len_and_hash & J_DREC_LEN_MASK;
         hash = (name_len_and_hash & J_DREC_HASH_MASK) >> J_DREC_HASH_SHIFT;
-
-        System.out.println(name_len);
-        System.out.println(hash);
 
         name = new byte[name_len];
         buffer.get(name);

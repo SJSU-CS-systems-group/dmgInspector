@@ -30,10 +30,10 @@ public class BTreeNode {
     public short btn_val_free_list_len;
     public ArrayList<BTreeTOCEntry> bTreeTOC = new ArrayList<BTreeTOCEntry>();
     public ArrayList<BTreeKey> bTreeKeys = new ArrayList<BTreeKey>();
-    public ArrayList<FSObjectKey> fsObjectKeys = new ArrayList<>();
-    public ArrayList<FSObjectValue> fsObjectValues = new ArrayList<>();
     public ArrayList<BTreeValue> bTreeValues = new ArrayList<BTreeValue>();
+    public ArrayList<FSKeyValue> fsKeyValues = new ArrayList<>();
 
+    public BTreeInfo bTreeInfo;
 
     public BTreeNode(ByteBuffer buffer) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -60,6 +60,9 @@ public class BTreeNode {
             if (i < btn_nkeys)
                 bTreeTOC.add(entry);
         }
+
+        ArrayList<FSObjectKey> fsObjectKeys = new ArrayList<>();
+        ArrayList<FSObjectValue> fsObjectValues = new ArrayList<>();
 
         // remember the key start position -- key offsets are calculated relative to this position
         int key_start_pos = buffer.position();
@@ -93,11 +96,12 @@ public class BTreeNode {
         }
 
         for (int i = 0; i < fsObjectKeys.size(); i++) {
-            System.out.println(i + ". key = " + fsObjectKeys.get(i) + "\t" + "value=" + fsObjectValues.get(i) + "\n");
+            fsKeyValues.add(new FSKeyValue(fsObjectKeys.get(i), fsObjectValues.get(i)));
         }
 
         buffer.position(value_start_pos);
-        BTreeInfo bTreeInfo = new BTreeInfo(buffer);
+
+        bTreeInfo = new BTreeInfo(buffer);
     }
 
     private void mapFlags() {
@@ -130,6 +134,8 @@ public class BTreeNode {
                 ", bTreeTOC=" + bTreeTOC +
                 ", bTreeKeys=" + bTreeKeys +
                 ", bTreeValues=" + bTreeValues +
+                ", fsKeyValues=" + fsKeyValues +
+                ", bTreeInfo=" + bTreeInfo +
                 '}';
     }
 }
