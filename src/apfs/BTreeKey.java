@@ -1,5 +1,6 @@
 package apfs;
 
+import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -23,13 +24,13 @@ class BTreeKey {
 }
 
 
-class FSObjectKeyFactory{
+class FSObjectKeyFactory {
 
-    public static FSObjectKey get(ByteBuffer buffer, int start_position){
+    public static FSObjectKey get(ByteBuffer buffer, int start_position) {
         buffer.position(start_position);
         FSKeyHeader kh = new FSKeyHeader(buffer);
         buffer.position(start_position);
-        switch ((int)kh.obj_type) {
+        switch ((int) kh.obj_type) {
             case 3:
                 return new INODEKey(buffer);
             case 8:
@@ -37,12 +38,42 @@ class FSObjectKeyFactory{
             case 9:
                 return new DRECKey(buffer);
             default:
-                return new FSObjectKey(buffer){};
+                return new FSObjectKey(buffer) {
+                };
         }
     }
 }
 
 
+// j_key_t structure from APFS reference pg. 72
+class FSKeyHeader {
+    public static final BigInteger OBJ_ID_MASK = new BigInteger("0fffffffffffffff", 16);
+    public static final BigInteger OBJ_TYPE_MASK = new BigInteger("f000000000000000", 16);
+    public static final int OBJ_TYPE_SHIFT = 60;
+    public static final BigInteger SYSTEM_OBJ_ID_MARK = new BigInteger("0fffffff00000000", 16);
+
+    long obj_id_and_type;
+    public long obj_id;
+    public long obj_type;
+
+    public FSKeyHeader(ByteBuffer buffer) {
+        buffer.order(ByteOrder.LITTLE_ENDIAN);
+
+        obj_id_and_type = buffer.getLong();
+        obj_id = OBJ_ID_MASK.and(BigInteger.valueOf(obj_id_and_type)).longValue();
+        obj_type = OBJ_TYPE_MASK.and(BigInteger.valueOf(obj_id_and_type)).shiftRight(OBJ_TYPE_SHIFT).longValue();
+
+    }
+
+
+    @Override
+    public String toString() {
+        return "FSKeyHeader{" +
+                "obj_id=" + obj_id +
+                ", obj_type=" + obj_type +
+                '}';
+    }
+}
 
 // Variable length keys are FS Objects (see page 71 of APFS Reference)
 abstract class FSObjectKey {
@@ -89,7 +120,8 @@ class DRECKey extends FSObjectKey {
     @Override
     public String toString() {
         return "DRECKey{" +
-                "name=" + new String(name) +
+                "hdr=" + hdr +
+                ", name=" + new String(name) +
                 ", name_len=" + Integer.toUnsignedString(name_len) +
                 ", hash=" + Integer.toUnsignedString(hash) +
                 '}';
@@ -98,25 +130,27 @@ class DRECKey extends FSObjectKey {
 
 // See object types at APFS refrence pg.84
 
-class INODEKey extends FSObjectKey{
+class INODEKey extends FSObjectKey {
     public int test = 0;
-    public INODEKey(ByteBuffer buffer){
+
+    public INODEKey(ByteBuffer buffer) {
         super(buffer);
     }
 
     @Override
     public String toString() {
         return "INODEKey{" +
-                "test=" + test +
+                "hdr=" + hdr +
+                ", test=" + test +
                 '}';
     }
 }
 
 
-class EXTENTKey extends FSObjectKey{
+class EXTENTKey extends FSObjectKey {
     public long logicalAddr;
 
-    public EXTENTKey(ByteBuffer buffer){
+    public EXTENTKey(ByteBuffer buffer) {
         super(buffer);
         logicalAddr = buffer.getLong();
     }
@@ -124,6 +158,7 @@ class EXTENTKey extends FSObjectKey{
     @Override
     public String toString() {
         return "EXTENTKey{" +
+                "hdr=" + hdr +
                 "logicalAddr=" + logicalAddr +
                 '}';
     }

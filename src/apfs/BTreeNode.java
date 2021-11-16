@@ -63,13 +63,11 @@ public class BTreeNode {
 
         // remember the key start position -- key offsets are calculated relative to this position
         int key_start_pos = buffer.position();
-        System.out.println(key_start_pos);
         for (BTreeTOCEntry b : bTreeTOC) {
             buffer.position(key_start_pos + b.key_offset);
             bTreeKeys.add(new BTreeKey(buffer));
 
             FSObjectKey obj = FSObjectKeyFactory.get(buffer, key_start_pos + b.key_offset);
-            //System.out.println(obj);
             fsObjectKeys.add(obj);
         }
 
@@ -86,7 +84,7 @@ public class BTreeNode {
 //        Collections.reverse(bTreeValues);
 
         int value_start_pos = start_of_node + 4096 - 40;
-        for(int i=0;i<bTreeTOC.size();i++){
+        for (int i = 0; i < bTreeTOC.size(); i++) {
             buffer.position(value_start_pos - bTreeTOC.get(i).value_offset - BTREE_VALUE_LENGTH);
             bTreeValues.add(new BTreeValue(buffer));
             int start_pos = value_start_pos - bTreeTOC.get(i).value_offset;
@@ -201,63 +199,6 @@ class BTreeTOCEntry {
                 '}';
     }
 }
-
-
-//class BTreeKey{
-//    byte[] obj_id = new byte[7];
-//    byte entry_kind;
-//
-//    public BTreeKey(ByteBuffer buffer){
-//        buffer.order(ByteOrder.LITTLE_ENDIAN);
-//        buffer.get(obj_id);
-//        entry_kind = buffer.get();
-//    }
-//
-//    @Override
-//    public String toString() {
-//        return "BTreeKey{" +
-//                "obj_id=" + Arrays.toString(obj_id) +
-//                ", entry_kind=" + String.format("%02X", entry_kind) +
-//                '}';
-//    }
-//}
-
-
-// Variable-length key FS Objects from APFS reference pg. 71
-interface FSObject {
-
-}
-
-// j_key_t structure from APFS reference pg. 72
-class FSKeyHeader {
-    public static final BigInteger OBJ_ID_MASK = new BigInteger("0fffffffffffffff", 16);
-    public static final BigInteger OBJ_TYPE_MASK = new BigInteger("f000000000000000", 16);
-    public static final int OBJ_TYPE_SHIFT = 60;
-    public static final BigInteger SYSTEM_OBJ_ID_MARK = new BigInteger("0fffffff00000000", 16);
-
-    long obj_id_and_type;
-    long obj_type;
-
-    public FSKeyHeader(ByteBuffer buffer) {
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-
-        obj_id_and_type = buffer.getLong();
-        obj_type = OBJ_TYPE_MASK.and(BigInteger.valueOf(obj_id_and_type)).shiftRight(OBJ_TYPE_SHIFT).longValue();
-    }
-
-    @Override
-    public String toString() {
-        return "FSKeyHeader{" +
-                "obj_id_and_type=" + Long.toUnsignedString(obj_id_and_type) +
-                ", obj_type=" + obj_type +
-                '}';
-    }
-}
-
-
-// TODO: Parse variable-length values (similar to how we're parsing variable-length BTreeKeys)
-// ...
-
 
 class BTreeInfo {
     BTreeInfoFixed bTreeInfoFixed;
