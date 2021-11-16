@@ -4,7 +4,7 @@ import utils.Utils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
-import java.util.HashMap;
+import java.util.*;
 
 public class APFS {
     private APFSContainer containerSb;
@@ -50,7 +50,7 @@ public class APFS {
         // 7. Organize FS Objects by record object identifiers
         HashMap<Long, FSKeyValue> inodeRecords = new HashMap<>();
         HashMap<Long, FSKeyValue> extentRecords = new HashMap<>();
-        HashMap<Long, FSKeyValue> drecRecords = new HashMap<>();
+        HashMap<Long, ArrayList<FSKeyValue>> drecRecords = new HashMap<>();
 
         for (FSKeyValue fskv : inodeBTreeRootNode.fsKeyValues) {
             int type = (int) fskv.key.hdr.obj_type;
@@ -62,12 +62,53 @@ public class APFS {
                     extentRecords.put(fskv.key.hdr.obj_id, fskv);
                     break;
                 case FSObjectKeyFactory.KEY_TYPE_DREC:
-                    drecRecords.put(fskv.key.hdr.obj_id, fskv);
+                    if (!drecRecords.containsKey(fskv.key.hdr.obj_id)){
+                        drecRecords.put(fskv.key.hdr.obj_id, new ArrayList<>());
+                    }
+                    drecRecords.get(fskv.key.hdr.obj_id).add(fskv);
                     break;
             }
         }
 
         // a. Start parsing from Root Directory -- will always have inode number of 1
+        ArrayDeque<Tuple<FSKeyValue, String>> queue = new ArrayDeque<>();
+        // get the root folder
+        ArrayList<FSKeyValue> possible_roots = drecRecords.get(1L);
+        FSKeyValue root = null;
+        for (FSKeyValue fsKeyValue : possible_roots){
+            DRECValue value = (DRECValue) fsKeyValue.value;
+            if (value.fileId == 2){
+                root = fsKeyValue;
+                break;
+            }
+        }
+        queue.add(new Tuple<>(root, "/"));
+        while (!queue.isEmpty()){
+            Tuple<FSKeyValue, String> tuple = queue.removeFirst();
+            FSKeyValue curr = tuple.x;
+            String path = tuple.y;
+
+            int type = (int) curr.key.hdr.obj_type;
+            switch (type) {
+                case FSObjectKeyFactory.KEY_TYPE_INODE:
+//                    inodeRecords.put(curr.key.hdr.obj_id, fskv);
+                    break;
+                case FSObjectKeyFactory.KEY_TYPE_EXTENT:
+//                    extentRecords.put(fskv.key.hdr.obj_id, fskv);
+                    break;
+                case FSObjectKeyFactory.KEY_TYPE_DREC:
+                    System.out.println(path + " -> " + curr);
+                    DRECKey key = (DRECKey) curr.key;
+                    DRECValue value = (DRECValue) curr.value;
+                    ArrayList<FSKeyValue> children = drecRecords.get(value.fileId);
+                    for (FSKeyValue child : children) {
+                        queue.add(new Tuple<>(child, path + key.name + "/"));
+                    }
+                    break;
+
+
+            }
+        }
 
 
         // 8. Parse files according to FS Object records
@@ -90,4 +131,12 @@ public class APFS {
 // Directories
 // Map Object Identifier -> Drec Records
 
-
+class Tuple<X, Y> {
+    public final X x;
+    public final Y y;
+    public Tuple(X x, Y y) {
+        this.x = x;
+        this.y = y;
+    }
+}
+// https://stackoverflow.com/questions/2670982/using-pairs-or-2-tuples-in-java
