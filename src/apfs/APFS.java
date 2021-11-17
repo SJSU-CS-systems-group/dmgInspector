@@ -2,6 +2,8 @@ package apfs;
 
 import utils.Utils;
 
+import java.io.File;
+import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -99,6 +101,11 @@ public class APFS {
             DRECKey key = (DRECKey) curr.key;
             DRECValue value = (DRECValue) curr.value;
 
+            File folder = new File("./output" + path);
+            if (!folder.exists()) {
+                folder.mkdir();
+            }
+
             if (value.flags == DT_FILE) {
                 // No new files to add since this record is a Regular File
                 // Find related extent
@@ -109,15 +116,15 @@ public class APFS {
                 // TODO: Parse file from the extent
                 String name = new String(key.name);
                 name = name.substring(0, name.length() - 1); // Remove null terminator character
-                String fileOutPath = path + name;
+                String fileOutPath = "./output" + path + name;
                 System.out.println("\n" + fileOutPath + " -> ");
                 Utils.extentRangeToFile(imagePath, fileOutPath, extentValue.physBlockNum * blockSize, extentValue.length);
 
-                // TODO: Create file
                 continue;
             }
 
             // Add new files to the queue since this record is a Directory
+
             ArrayList<FSKeyValue> children = drecRecords.get(value.fileId);
             if (children != null) {
                 for (FSKeyValue child : children) {
@@ -130,9 +137,6 @@ public class APFS {
 
         }
 
-
-        // 8. Parse files according to FS Object records
-        // TODO: build directory structure w/ files
     }
 
     @Override

@@ -114,11 +114,13 @@ public class Utils {
     }
 
     public static void extentRangeToFile(String imagePath, String outPath, long physAddr, long len) throws IOException {
-        System.out.println(physAddr);
-        System.out.println(len);
         byte[] extentBytes = new byte[(int)len];
         ByteBuffer buff = GetBuffer(imagePath, (int)physAddr, (int)len);
         buff.get(extentBytes);
-        System.out.println(new String(extentBytes, StandardCharsets.UTF_8));
+
+        File decompressedMishFile = new File(outPath);
+        FileOutputStream fileWriter= new FileOutputStream(decompressedMishFile.getAbsolutePath());
+        fileWriter.write(extentBytes);
+        fileWriter.close();
     }
 }
