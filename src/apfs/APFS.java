@@ -24,23 +24,38 @@ public class APFS {
         // 2. Find the CSB BTree using an OID provided by the CSB OMAP
         ByteBuffer rootNodeBuffer = Utils.GetBuffer(imagePath, (int) csbOMap.om_tree_oid * blockSize, blockSize);
         BTreeNode rootNode = new BTreeNode(rootNodeBuffer);
-//        System.out.println(rootNode);
 
         // 3. Parse the Volume Superblock using info from the CSB BTree
         // TODO: Write general case to parse keys & values
         ByteBuffer volumeSbBuffer = Utils.GetBuffer(imagePath, (int) rootNode.bTreeValues.get(0).paddr_t * blockSize, blockSize);
         APFSVolume volumeSb = new APFSVolume(volumeSbBuffer);
-//        System.out.println(volumeSb);
 //
 //        // 4. Parse VSB OMap
         ByteBuffer vsbOMapBuffer = Utils.GetBuffer(imagePath, (int) volumeSb.apfs_omap_oid * blockSize, blockSize);
         OMap vsbOMap = new OMap(vsbOMapBuffer);
-//        System.out.println(vsbOMap);
 
         // 5. Parse VSB B-Tree
         ByteBuffer vsbRootNodeBuffer = Utils.GetBuffer(imagePath, (int) vsbOMap.om_tree_oid * blockSize, blockSize);
         BTreeNode vsbRootNode = new BTreeNode(vsbRootNodeBuffer);
         System.out.println(vsbRootNode);
+
+        // TODOS
+        // 1. Right now, we can't parse nodes besides the Root Node -- to parse these others nodes,
+        // we must...
+        //
+        //   OMAP purpose: map OIDs to Physical Addresses
+        //   Getting the OMAP BTree
+        //   VSB -> OMAP (Contains B-Tree) ->
+        //
+        //   a. Find these other nodes' OIDs
+        //   b. Plug their OIDs into the OMAP to get their physical address
+        //   c. Parse the node at the physical address
+        //
+        // VSB has an OMAP and root node ID.
+        // Right now, we're only using that root ID to get the FS Object BTree Root Node
+
+        // 1. Parse OMAP B-Tree: plug in OID -> Phys addr
+        // 2. Parsing the FS Object B-Tree (using Many Files)
 
         // 6. Parse FS Object B Tree
         // TODO: Actually parse B-Tree. We also need to parse OMAP BTrees properly.
@@ -48,6 +63,9 @@ public class APFS {
         BTreeNode inodeBTreeRootNode = new BTreeNode(inodeBTreeRootNodeBuffer);
         System.out.println("\n\n\n");
         System.out.println(inodeBTreeRootNode);
+
+
+        // TODO: Parse BTree Nodes to get all inode, extent, drec
 
         // 7. Organize FS Objects by record object identifiers
         HashMap<Long, FSKeyValue> inodeRecords = new HashMap<>();
@@ -113,6 +131,8 @@ public class APFS {
                 EXTENTKey extentKey = (EXTENTKey) extentKv.key;
                 EXTENTValue extentValue = (EXTENTValue) extentKv.value;
 
+                System.out.println(extentValue);
+
                 // TODO: Parse file from the extent
                 String name = new String(key.name);
                 name = name.substring(0, name.length() - 1); // Remove null terminator character
@@ -134,7 +154,8 @@ public class APFS {
                 }
             }
 
-
+            //
+            //
         }
 
     }

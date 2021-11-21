@@ -8,6 +8,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.Arrays;
 
+// See APFS reference page 26 (Container Superblock)
 public class APFSContainer {
     public BlockHeader blockHeader;
     public byte[] magic = new byte[4];
@@ -30,7 +31,7 @@ public class APFSContainer {
     public int nx_xp_data_index;
     public int nx_xp_data;
     public long nx_spaceman_oid;
-    public long nx_omap_oid;
+    public long nx_omap_oid; // Physical object identifier (physical address) of the CSB OMAP
     public long nx_reaper_oid;
     public int nx_test_type;
     public int nx_max_file_systems;

@@ -19,10 +19,11 @@ public class Main {
 //        }
 
 //        String dmgFile = "src/images/bigandsmall.dmg";
+//        String dmgFile = "src/images/Many Files.dmg";
 //        DMGInspector dmgInspector = DMGInspector.parseImage(dmgFile);
 
         String filepath = "output/4_diskimageApple_APFS4";
         APFS apfs = new APFS(filepath);
-        System.out.println(apfs);
+//        System.out.println(apfs);
     }
 }
