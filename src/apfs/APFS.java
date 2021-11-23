@@ -22,6 +22,7 @@ public class APFS {
         int csbOmapOffset = (int) containerSb.nx_omap_oid * blockSize;
         ByteBuffer csbOMapBuffer = Utils.GetBuffer(imagePath, csbOmapOffset, blockSize);
         OMap csbOMap = new OMap(csbOMapBuffer, imagePath, blockSize);
+        System.out.println(csbOMap);
 
         // Parse the Volume Superblock (VSB)
         // Get the VSB physical address by searching for nx_fs_oid in the CSB OMAP
@@ -47,8 +48,10 @@ public class APFS {
         //              We want to add each leaf node to the OMAP BTree -- their paddr's point us to actual FS Objects
 
         int vsbOMapOffset = (int) volumeSb.apfs_omap_oid * blockSize;
+        System.out.println(volumeSb.apfs_omap_oid);
         ByteBuffer vsbOMapBuffer = Utils.GetBuffer(imagePath, vsbOMapOffset, blockSize);
         OMap vsbOMap = new OMap(vsbOMapBuffer, imagePath, blockSize);
+        System.out.println(vsbOMap);
 
         // TODO: Since we're not parsing child nodes, oid 1028 maps to 68719476752 -- should be 5393.
         // (1028 parent node has a child w/ ID 1028, which has the paddr we want)
@@ -56,7 +59,6 @@ public class APFS {
         int fsTreeOffset = (int) vsbOMap.omapBTree.search(volumeSb.apfs_root_tree_oid).paddr_t * blockSize;
         ByteBuffer vsbRootNodeBuffer = Utils.GetBuffer(imagePath, fsTreeOffset, blockSize);
         BTreeNode vsbRootNode = new BTreeNode(vsbRootNodeBuffer);
-        System.out.println(vsbRootNode);
 
         int offset = 0; // PLACEHOLDER
         ByteBuffer inodeBTreeRootNodeBuffer = Utils.GetBuffer(imagePath, offset, blockSize);

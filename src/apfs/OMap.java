@@ -44,6 +44,8 @@ public class OMap {
         ByteBuffer rootNodeBuffer = Utils.GetBuffer(imagePath, csbOMAPBTreeOffset, blockSize);
         BTreeNode rootNode = new BTreeNode(rootNodeBuffer);
 
+        System.out.println(rootNode);
+
         // TODO: Traverse OMAP BTree to get all OMAP Keys & Values
         // Parse the entire B-Tree
 

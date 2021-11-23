@@ -24,7 +24,7 @@ class OMAPKey implements Comparable<OMAPKey> {
 
     @Override
     public String toString() {
-        return "BTreeKey{" +
+        return "OMapKey{" +
                 "ok_oid=" + ok_oid +
                 ", ok_xid=" + ok_xid +
                 '}';

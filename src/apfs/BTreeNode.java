@@ -9,9 +9,6 @@ import java.util.ArrayList;
 
 public class BTreeNode {
 
-    public static final int BTREE_KEY_LENGTH = 16;
-    public static final int BTREE_TOC_LENGTH = 8;
-    public static final int BTREE_VALUE_LENGTH = 16;
 
     public BlockHeader btn_o;
     public short btn_flags;
@@ -64,13 +61,13 @@ public class BTreeNode {
         boolean isOMAP = this.btn_flags_is_fixed_KV_size;
 
         int toc_start = buffer.position() + btn_table_space_off;
+        int toc_end = buffer.position() + btn_table_space_off + btn_table_space_len;
         buffer.position(toc_start);
 
-        for (int i = 0; i < btn_table_space_len / BTREE_TOC_LENGTH; i++) {
-            BTreeTOCEntry entry = new BTreeTOCEntry(buffer, isOMAP);
-            if (i < btn_nkeys)
-                bTreeTOC.add(entry);
+        for (int keyNum = 1; keyNum <= btn_nkeys; keyNum++) {
+            bTreeTOC.add(new BTreeTOCEntry(buffer, isOMAP));
         }
+        buffer.position(toc_end);
 
 
         // remember the key start position -- key offsets are calculated relative to this position
@@ -90,7 +87,9 @@ public class BTreeNode {
         int value_start_pos = start_of_node + 4096 - 40;
         for (int i = 0; i < bTreeTOC.size(); i++) {
             BTreeTOCEntry entry = bTreeTOC.get(i);
-            int start_pos = value_start_pos - entry.value_offset - entry.value_length;
+            int start_pos = value_start_pos - entry.value_offset;
+            // TODO: Generalize -- fixed key-value length should be acquired from node info?
+            start_pos -= isOMAP ? 16 : entry.value_length;
             buffer.position(start_pos);
             if (isOMAP) {
                 omapValues.add(new OMAPValue(buffer));
@@ -149,25 +148,24 @@ public class BTreeNode {
     }
 }
 
-class BTreeTOCEntry {
 
-    // -1 will indicate there is no key length -- Fixed-length TOC Entries will not read length bytes.
+// Table of Contents entry
+// See APFS Reference pg. 129
+class BTreeTOCEntry {
+    // -1 will indicate there is no key length
+    //      -- because fixed-length TOC Entries will don't read length bytes.
     public short key_offset;
-    public short key_length;
+    public short key_length = -1;
     public short value_offset;
-    public short value_length;
+    public short value_length = -1;
 
     public BTreeTOCEntry(ByteBuffer buffer, boolean isFixed) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
-        key_offset = buffer.getShort();
-        key_length = buffer.getShort();
-        value_offset = buffer.getShort();
-        value_length = buffer.getShort();
 
-        if (isFixed) {
-            key_length = BTreeNode.BTREE_KEY_LENGTH;
-            value_length = BTreeNode.BTREE_VALUE_LENGTH;
-        }
+        key_offset = buffer.getShort();
+        if (!isFixed) key_length = buffer.getShort();
+        value_offset = buffer.getShort();
+        if (!isFixed) value_length = buffer.getShort();
     }
 
     @Override
