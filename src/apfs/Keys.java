@@ -4,14 +4,22 @@ import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
+// Classes for parsing OMAP & FS Object Keys
+
 // OMAP Key structure for fixed-length keys -- see APFS reference pg. 46
-class BTreeKey {
+class OMAPKey implements Comparable<OMAPKey> {
     long ok_oid;
     long ok_xid;
 
-    public BTreeKey(ByteBuffer buffer) {
+    public OMAPKey(ByteBuffer buffer) {
         ok_oid = buffer.getLong();
         ok_xid = buffer.getLong();
+    }
+
+
+    @Override
+    public int compareTo(OMAPKey o) {
+        return (int) (this.ok_oid - o.ok_oid);
     }
 
     @Override

@@ -10,12 +10,12 @@ import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.TimeZone;
 
-public class BTreeValue {
+class OMAPValue {
     int ov_flags;
     int ov_size;
     long paddr_t;
 
-    public BTreeValue(ByteBuffer buffer) {
+    public OMAPValue(ByteBuffer buffer) {
         ov_flags = buffer.getInt();
         ov_size = buffer.getInt();
         paddr_t = buffer.getLong();
@@ -23,7 +23,7 @@ public class BTreeValue {
 
     @Override
     public String toString() {
-        return "BTreeValue{" +
+        return "OMAPValue{" +
                 "ov_flags=" + ov_flags +
                 ", ov_size=" + ov_size +
                 ", paddr_t=" + paddr_t +

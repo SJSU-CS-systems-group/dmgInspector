@@ -4,6 +4,12 @@ import apfs.APFSContainer;
 import java.io.IOException;
 
 public class Main {
+    // TODO: Final project
+    // dmginspector CLI TOOL --
+    // 1. Dump volume info -- dmgi volumes
+    // 2. Dump volume file objects -- dmgi fsobj <?volume>
+    // 3. Dump file system structure -- dmgi files
+    // 4. Extract file(s) -- dmgi extract <?specific_file>
 
     public static void main(String[] args) throws IOException {
 //        String imgPath = utils.Utils.chooseImagePath();

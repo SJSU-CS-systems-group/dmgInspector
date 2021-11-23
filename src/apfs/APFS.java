@@ -1,9 +1,9 @@
 package apfs;
 
+import utils.BPlusTree;
 import utils.Utils;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
@@ -13,56 +13,55 @@ public class APFS {
     private APFSVolume volumeSb;
 
     public APFS(String imagePath) throws IOException {
+        // Parse the Container Superblock (CSB)
         containerSb = APFSContainer.parseContainer(imagePath);
-
         int blockSize = containerSb.nx_block_size;
 
-        // 1. Access CSB OMAP via its OID from the Container Superblock
-        ByteBuffer csbOMapBuffer = Utils.GetBuffer(imagePath, (int) containerSb.nx_omap_oid * blockSize, blockSize);
-        OMap csbOMap = new OMap(csbOMapBuffer);
+        // Get the CSB Object Map (OMAP), which maps OIDs to values containing a physical address
+        // nx_omap_oid is a physical address
+        int csbOmapOffset = (int) containerSb.nx_omap_oid * blockSize;
+        ByteBuffer csbOMapBuffer = Utils.GetBuffer(imagePath, csbOmapOffset, blockSize);
+        OMap csbOMap = new OMap(csbOMapBuffer, imagePath, blockSize);
 
-        // 2. Find the CSB BTree using an OID provided by the CSB OMAP
-        ByteBuffer rootNodeBuffer = Utils.GetBuffer(imagePath, (int) csbOMap.om_tree_oid * blockSize, blockSize);
-        BTreeNode rootNode = new BTreeNode(rootNodeBuffer);
-
-        // 3. Parse the Volume Superblock using info from the CSB BTree
-        // TODO: Write general case to parse keys & values
-        ByteBuffer volumeSbBuffer = Utils.GetBuffer(imagePath, (int) rootNode.bTreeValues.get(0).paddr_t * blockSize, blockSize);
+        // Parse the Volume Superblock (VSB)
+        // Get the VSB physical address by searching for nx_fs_oid in the CSB OMAP
+        // nx_fs_oid: contains OIDs for VSBs - see APFS Reference pg. 32
+        int vsbOffset = (int) csbOMap.omapBTree.search(containerSb.nx_fs_oid).paddr_t * blockSize;
+        ByteBuffer volumeSbBuffer = Utils.GetBuffer(imagePath, vsbOffset, blockSize);
         APFSVolume volumeSb = new APFSVolume(volumeSbBuffer);
-//
-//        // 4. Parse VSB OMap
-        ByteBuffer vsbOMapBuffer = Utils.GetBuffer(imagePath, (int) volumeSb.apfs_omap_oid * blockSize, blockSize);
-        OMap vsbOMap = new OMap(vsbOMapBuffer);
 
-        // 5. Parse VSB B-Tree
-        ByteBuffer vsbRootNodeBuffer = Utils.GetBuffer(imagePath, (int) vsbOMap.om_tree_oid * blockSize, blockSize);
+        // Parse the VSB OMap
+        // VSB apfs_omap_oid field is the physical block number (See APFS Reference pg. 55)
+        // TODO: Finish OMAP BTree Parsing in OMap.java -- right now, we're only parsing the root node
+        // TODO: MUST parse child nodes! If we don't, our values will be wrong.
+        // BTREE structure (Many Files.dmg APFS image)!
+        // Start at VSB OMap's BTree Root Node (oid 5403)
+
+        // 0                [1028, 1139]
+        // 1  [1028, 1030 to 1139]   [1139 to 1145]
+
+        //  -btn_level = 1, meaning it has 1 level of child nodes below it
+        //  -contains BTree Nodes with OMAP keys (oids 1028 and 1139)
+        //          1028's children are Leaf Nodes: oids 1028, 1030 to 1139
+        //          1139's children are Leaf Nodes: oids 1139 to 1145
+        //              We want to add each leaf node to the OMAP BTree -- their paddr's point us to actual FS Objects
+
+        int vsbOMapOffset = (int) volumeSb.apfs_omap_oid * blockSize;
+        ByteBuffer vsbOMapBuffer = Utils.GetBuffer(imagePath, vsbOMapOffset, blockSize);
+        OMap vsbOMap = new OMap(vsbOMapBuffer, imagePath, blockSize);
+
+        // TODO: Since we're not parsing child nodes, oid 1028 maps to 68719476752 -- should be 5393.
+        // (1028 parent node has a child w/ ID 1028, which has the paddr we want)
+
+        int fsTreeOffset = (int) vsbOMap.omapBTree.search(volumeSb.apfs_root_tree_oid).paddr_t * blockSize;
+        ByteBuffer vsbRootNodeBuffer = Utils.GetBuffer(imagePath, fsTreeOffset, blockSize);
         BTreeNode vsbRootNode = new BTreeNode(vsbRootNodeBuffer);
         System.out.println(vsbRootNode);
 
-        // TODOS
-        // 1. Right now, we can't parse nodes besides the Root Node -- to parse these others nodes,
-        // we must...
-        //
-        //   OMAP purpose: map OIDs to Physical Addresses
-        //   Getting the OMAP BTree
-        //   VSB -> OMAP (Contains B-Tree) ->
-        //
-        //   a. Find these other nodes' OIDs
-        //   b. Plug their OIDs into the OMAP to get their physical address
-        //   c. Parse the node at the physical address
-        //
-        // VSB has an OMAP and root node ID.
-        // Right now, we're only using that root ID to get the FS Object BTree Root Node
-
-        // 1. Parse OMAP B-Tree: plug in OID -> Phys addr
-        // 2. Parsing the FS Object B-Tree (using Many Files)
-
-        // 6. Parse FS Object B Tree
-        // TODO: Actually parse B-Tree. We also need to parse OMAP BTrees properly.
-        ByteBuffer inodeBTreeRootNodeBuffer = Utils.GetBuffer(imagePath, (int) vsbRootNode.bTreeValues.get(0).paddr_t * blockSize, blockSize);
+        int offset = 0; // PLACEHOLDER
+        ByteBuffer inodeBTreeRootNodeBuffer = Utils.GetBuffer(imagePath, offset, blockSize);
         BTreeNode inodeBTreeRootNode = new BTreeNode(inodeBTreeRootNodeBuffer);
         System.out.println("\n\n\n");
-        System.out.println(inodeBTreeRootNode);
 
 
         // TODO: Parse BTree Nodes to get all inode, extent, drec

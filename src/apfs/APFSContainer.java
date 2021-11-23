@@ -35,7 +35,7 @@ public class APFSContainer {
     public long nx_reaper_oid;
     public int nx_test_type;
     public int nx_max_file_systems;
-    public long nx_fs_oid;
+    public long nx_fs_oid; // TODO: this should be an array -- there may be multiple volumes
 
     public APFSContainer(ByteBuffer buffer) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -46,7 +46,6 @@ public class APFSContainer {
         nx_block_count = buffer.getLong();
         nx_features = buffer.getLong();
         nx_read_only_compatible_features = buffer.getLong();
-        ;
         nx_incompatable_features = buffer.getLong();
         buffer.get(nx_uuid);
         nx_next_oid = buffer.getLong();

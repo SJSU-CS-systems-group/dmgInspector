@@ -1,5 +1,9 @@
 package apfs;
 
+import utils.BPlusTree;
+import utils.Utils;
+
+import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 
@@ -14,7 +18,10 @@ public class OMap {
     long om_most_recent_snap;
     long om_pending_revert_min;
 
-    public OMap(ByteBuffer buffer) {
+    // OMAP BTree : OID -> OMAPValue
+    BPlusTree<Long, OMAPValue> omapBTree = new BPlusTree<>();
+
+    public OMap(ByteBuffer buffer, String imagePath, int blockSize) throws IOException {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         om_o = new BlockHeader(buffer);
 
@@ -27,6 +34,23 @@ public class OMap {
         om_snapshot_tree_oid = buffer.getLong();
         om_most_recent_snap = buffer.getLong();
         om_pending_revert_min = buffer.getLong();
+
+        parseOmapBTree(imagePath, blockSize);
+    }
+
+    private void parseOmapBTree(String imagePath, int blockSize) throws IOException {
+        // Parse the OMAP's root node
+        int csbOMAPBTreeOffset = (int) om_tree_oid * blockSize;
+        ByteBuffer rootNodeBuffer = Utils.GetBuffer(imagePath, csbOMAPBTreeOffset, blockSize);
+        BTreeNode rootNode = new BTreeNode(rootNodeBuffer);
+
+        // TODO: Traverse OMAP BTree to get all OMAP Keys & Values
+        // Parse the entire B-Tree
+
+        // TODO: Insert each key oid-value pair into the OMAP BTree Structure for ALL nodes
+        for (int i = 0; i < rootNode.omapKeys.size(); i++) {
+            omapBTree.insert(rootNode.omapKeys.get(i).ok_oid, rootNode.omapValues.get(i));
+        }
     }
 
     @Override
@@ -41,6 +65,7 @@ public class OMap {
                 ", om_snapshot_tree_oid=" + om_snapshot_tree_oid +
                 ", om_most_recent_snap=" + om_most_recent_snap +
                 ", om_pending_revert_min=" + om_pending_revert_min +
+                ", \n\tOMAP BTree=" + omapBTree.toString() +
                 '}';
     }
 }
