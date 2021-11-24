@@ -1,6 +1,5 @@
 package apfs;
 
-import utils.BPlusTree;
 import utils.Utils;
 
 import java.io.File;
@@ -27,7 +26,7 @@ public class APFS {
         // Parse the Volume Superblock (VSB)
         // Get the VSB physical address by searching for nx_fs_oid in the CSB OMAP
         // nx_fs_oid: contains OIDs for VSBs - see APFS Reference pg. 32
-        int vsbOffset = (int) csbOMap.omapBTree.search(containerSb.nx_fs_oid).paddr_t * blockSize;
+        int vsbOffset = (int) csbOMap.parsedOmap.get(containerSb.nx_fs_oid).paddr_t * blockSize;
         ByteBuffer volumeSbBuffer = Utils.GetBuffer(imagePath, vsbOffset, blockSize);
         APFSVolume volumeSb = new APFSVolume(volumeSbBuffer);
 
@@ -56,7 +55,7 @@ public class APFS {
         // TODO: Since we're not parsing child nodes, oid 1028 maps to 68719476752 -- should be 5393.
         // (1028 parent node has a child w/ ID 1028, which has the paddr we want)
 
-        int fsTreeOffset = (int) vsbOMap.omapBTree.search(volumeSb.apfs_root_tree_oid).paddr_t * blockSize;
+        int fsTreeOffset = (int) vsbOMap.parsedOmap.get(volumeSb.apfs_root_tree_oid).paddr_t * blockSize;
         ByteBuffer vsbRootNodeBuffer = Utils.GetBuffer(imagePath, fsTreeOffset, blockSize);
         BTreeNode vsbRootNode = new BTreeNode(vsbRootNodeBuffer);
 

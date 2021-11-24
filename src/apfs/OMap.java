@@ -1,11 +1,11 @@
 package apfs;
 
-import utils.BPlusTree;
 import utils.Utils;
 
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.HashMap;
 
 public class OMap {
     BlockHeader om_o;
@@ -18,8 +18,8 @@ public class OMap {
     long om_most_recent_snap;
     long om_pending_revert_min;
 
-    // OMAP BTree : OID -> OMAPValue
-    BPlusTree<Long, OMAPValue> omapBTree = new BPlusTree<>();
+    // OID -> OMAPValue
+    HashMap<Long, OMAPValue> parsedOmap = new HashMap<>();
 
     public OMap(ByteBuffer buffer, String imagePath, int blockSize) throws IOException {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -38,6 +38,14 @@ public class OMap {
         parseOmapBTree(imagePath, blockSize);
     }
 
+
+    /**
+     * Parses the OMAP's BTree, mapping oids to OMAP Values in a hash map
+     *
+     * @param imagePath
+     * @param blockSize
+     * @throws IOException
+     */
     private void parseOmapBTree(String imagePath, int blockSize) throws IOException {
         // Parse the OMAP's root node
         int csbOMAPBTreeOffset = (int) om_tree_oid * blockSize;
@@ -46,12 +54,15 @@ public class OMap {
 
         System.out.println(rootNode);
 
+
         // TODO: Traverse OMAP BTree to get all OMAP Keys & Values
         // Parse the entire B-Tree
 
         // TODO: Insert each key oid-value pair into the OMAP BTree Structure for ALL nodes
         for (int i = 0; i < rootNode.omapKeys.size(); i++) {
-            omapBTree.insert(rootNode.omapKeys.get(i).ok_oid, rootNode.omapValues.get(i));
+            long oid = rootNode.omapKeys.get(i).ok_oid;
+            OMAPValue val = rootNode.omapValues.get(i);
+            parsedOmap.put(oid, val);
         }
     }
 
@@ -67,7 +78,7 @@ public class OMap {
                 ", om_snapshot_tree_oid=" + om_snapshot_tree_oid +
                 ", om_most_recent_snap=" + om_most_recent_snap +
                 ", om_pending_revert_min=" + om_pending_revert_min +
-                ", \n\tOMAP BTree=" + omapBTree.toString() +
+                ", \n\tParsed OMap=" + parsedOmap.toString() +
                 '}';
     }
 }
