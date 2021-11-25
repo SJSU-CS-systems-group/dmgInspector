@@ -93,7 +93,7 @@ public class BTreeNode {
             // TODO: Generalize -- fixed key-value length should be acquired from node info?
             buffer.position(start_pos);
             if (isOMAP) {
-                omapValues.add(new OMAPValue(buffer));
+                omapValues.add(new OMAPValue(buffer, btn_flags_is_leaf));
             } else {
                 FSObjectValue val = FSObjectValueFactory.get(buffer, start_pos, fsKeys.get(i));
                 fsValues.add(val);
