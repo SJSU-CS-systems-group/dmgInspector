@@ -7,6 +7,7 @@ import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.HashMap;
 
+// See APFS Reference pg. 44
 public class OMap {
     BlockHeader om_o;
     int om_flags;
@@ -18,8 +19,8 @@ public class OMap {
     long om_most_recent_snap;
     long om_pending_revert_min;
 
-    // OID -> OMAPValue
-    HashMap<Long, OMAPValue> parsedOmap = new HashMap<>();
+    // OID -> Physical Address
+    HashMap<Long, Long> parsedOmap = new HashMap<>();
 
     public OMap(ByteBuffer buffer, String imagePath, int blockSize) throws IOException {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -54,6 +55,9 @@ public class OMap {
 
         System.out.println(rootNode);
 
+        if(!rootNode.btn_flags_is_leaf) {
+            System.out.println("NOT LEAF. LOOK FOR CHILDREN");
+        }
 
         // TODO: Traverse OMAP BTree to get all OMAP Keys & Values
         // Parse the entire B-Tree
@@ -61,8 +65,8 @@ public class OMap {
         // TODO: Insert each key oid-value pair into the OMAP BTree Structure for ALL nodes
         for (int i = 0; i < rootNode.omapKeys.size(); i++) {
             long oid = rootNode.omapKeys.get(i).ok_oid;
-            OMAPValue val = rootNode.omapValues.get(i);
-            parsedOmap.put(oid, val);
+            long paddr = rootNode.omapValues.get(i).paddr_t;
+            parsedOmap.put(oid, paddr);
         }
     }
 

@@ -84,15 +84,16 @@ public class BTreeNode {
             }
         }
 
-        int value_start_pos = start_of_node + 4096 - 40;
-        for (int i = 0; i < bTreeTOC.size(); i++) {
+        // Assuming a block size of 4096 and NodeInfo of 40 bytes
+        int value_end_pos = start_of_node + 4096 - 40;
+
+        for (int i = bTreeTOC.size() - 1; i >= 0; i--) {
             BTreeTOCEntry entry = bTreeTOC.get(i);
-            int start_pos = value_start_pos - entry.value_offset;
+            int start_pos = value_end_pos - entry.value_offset;
             // TODO: Generalize -- fixed key-value length should be acquired from node info?
-            start_pos -= isOMAP ? 16 : entry.value_length;
             buffer.position(start_pos);
             if (isOMAP) {
-                omapValues.add(new OMAPValue(buffer));
+                omapValues.add(new OMAPValue(buffer, btn_flags_is_leaf));
             } else {
                 FSObjectValue val = FSObjectValueFactory.get(buffer, start_pos, fsKeys.get(i));
                 fsValues.add(val);
@@ -106,7 +107,7 @@ public class BTreeNode {
 
         // Move the the start of the value area, which is just before the BTreeNodeInfo (if this node is a root node)
         if (!btn_flags_is_root) return;
-        buffer.position(value_start_pos);
+        buffer.position(value_end_pos);
         bTreeInfo = new BTreeInfo(buffer);
     }
 
@@ -137,9 +138,9 @@ public class BTreeNode {
                 ", btn_key_free_list_len=" + btn_key_free_list_len +
                 ", btn_val_free_list_off=" + btn_val_free_list_off +
                 ", btn_val_free_list_len=" + btn_val_free_list_len +
-                ", bTreeTOC=" + bTreeTOC +
+                ", \n\tbTreeTOC=" + bTreeTOC +
                 ", \n\tomapKeys=" + omapKeys +
-                ", omapValues=" + omapValues +
+                ", \n\tomapValues=" + omapValues +
                 ", \n\tfsKeys=" + fsKeys +
                 ", fsValues=" + fsValues +
                 ", fsKeyValues=" + fsKeyValues +
