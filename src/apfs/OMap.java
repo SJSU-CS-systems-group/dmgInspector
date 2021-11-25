@@ -5,6 +5,7 @@ import utils.Utils;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
+import java.util.ArrayDeque;
 import java.util.HashMap;
 
 // See APFS Reference pg. 44
@@ -53,20 +54,29 @@ public class OMap {
         ByteBuffer rootNodeBuffer = Utils.GetBuffer(imagePath, csbOMAPBTreeOffset, blockSize);
         BTreeNode rootNode = new BTreeNode(rootNodeBuffer);
 
-        System.out.println(rootNode);
-
-        if(!rootNode.btn_flags_is_leaf) {
-            System.out.println("NOT LEAF. LOOK FOR CHILDREN");
-        }
-
-        // TODO: Traverse OMAP BTree to get all OMAP Keys & Values
-        // Parse the entire B-Tree
-
-        // TODO: Insert each key oid-value pair into the OMAP BTree Structure for ALL nodes
-        for (int i = 0; i < rootNode.omapKeys.size(); i++) {
-            long oid = rootNode.omapKeys.get(i).ok_oid;
-            long paddr = rootNode.omapValues.get(i).paddr_t;
-            parsedOmap.put(oid, paddr);
+        ArrayDeque<BTreeNode> nodes = new ArrayDeque<>();
+        nodes.add(rootNode);
+        while (nodes.size() > 0) {
+            BTreeNode n = nodes.removeFirst();
+            System.out.println(n);
+            if (n.bTreeInfo != null)
+                System.out.println("VAL SIZE " + n.bTreeInfo.bTreeInfoFixed.bt_val_size);
+            if (n.btn_flags_is_leaf) {
+                for (int i = 0; i < n.omapKeys.size(); i++) {
+                    OMAPKey key = n.omapKeys.get(i);
+                    OMAPValue val = n.omapValues.get(i);
+                    System.out.println("LEAF ENTRY KEY " + key.ok_oid);
+                    System.out.println("LEAF ENTRY VAL " + val);
+                    parsedOmap.put(key.ok_oid, val.paddr_t);
+                }
+            } else {
+                for (OMAPValue omapVal : n.omapValues) {
+                    System.out.println("CHILD NODE AT BLOCK " + omapVal.paddr_t);
+                    int physOffset = (int) omapVal.paddr_t * blockSize;
+                    ByteBuffer childNodeBytes = Utils.GetBuffer(imagePath, physOffset, blockSize);
+                    nodes.add(new BTreeNode(childNodeBytes));
+                }
+            }
         }
     }
 

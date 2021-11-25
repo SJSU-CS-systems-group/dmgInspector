@@ -52,8 +52,10 @@ public class APFS {
         OMap vsbOMap = new OMap(vsbOMapBuffer, imagePath, blockSize);
         System.out.println(vsbOMap);
 
+
         // TODO: Since we're not parsing child nodes, oid 1028 maps to 68719476752 -- should be 5393.
         // (1028 parent node has a child w/ ID 1028, which has the paddr we want)
+        System.out.println(volumeSb.apfs_root_tree_oid);
 
         int fsTreeOffset = vsbOMap.parsedOmap.get(volumeSb.apfs_root_tree_oid).intValue() * blockSize;
         ByteBuffer vsbRootNodeBuffer = Utils.GetBuffer(imagePath, fsTreeOffset, blockSize);
