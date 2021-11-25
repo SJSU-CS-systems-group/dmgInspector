@@ -87,7 +87,7 @@ public class BTreeNode {
         // Assuming a block size of 4096 and NodeInfo of 40 bytes
         int value_end_pos = start_of_node + 4096 - 40;
 
-        for (int i = bTreeTOC.size() - 1; i >= 0; i--) {
+        for (int i = 0; i < bTreeTOC.size(); i++) {
             BTreeTOCEntry entry = bTreeTOC.get(i);
             int start_pos = value_end_pos - entry.value_offset;
             // TODO: Generalize -- fixed key-value length should be acquired from node info?
