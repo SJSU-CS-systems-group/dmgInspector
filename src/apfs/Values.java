@@ -15,13 +15,11 @@ class OMAPValue {
     int ov_size;
     long paddr_t;
 
-    public OMAPValue(ByteBuffer buffer, boolean isInLeafNode) {
+    public OMAPValue(ByteBuffer buffer) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
 
-        // Looking at 010 APFS inspector, it looks like non-leaf nodes don't have flags & size.
-        // For these, we instead just read the physical address.
-        if (isInLeafNode) ov_flags = buffer.getInt();
-        if (isInLeafNode) ov_size = buffer.getInt();
+        ov_flags = buffer.getInt();
+        ov_size = buffer.getInt();
         paddr_t = buffer.getLong();
     }
 

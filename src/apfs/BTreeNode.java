@@ -84,8 +84,8 @@ public class BTreeNode {
             }
         }
 
-        // Assuming a block size of 4096 and NodeInfo of 40 bytes
-        int value_end_pos = start_of_node + 4096 - 40;
+        int infoSize = (btn_flags_is_root ? 40 : 0); // Only root nodes have a BTreeInfo structure
+        int value_end_pos = start_of_node + 4096 - infoSize;
 
         for (int i = 0; i < bTreeTOC.size(); i++) {
             BTreeTOCEntry entry = bTreeTOC.get(i);
@@ -93,7 +93,7 @@ public class BTreeNode {
             // TODO: Generalize -- fixed key-value length should be acquired from node info?
             buffer.position(start_pos);
             if (isOMAP) {
-                omapValues.add(new OMAPValue(buffer, btn_flags_is_leaf));
+                omapValues.add(new OMAPValue(buffer));
             } else {
                 FSObjectValue val = FSObjectValueFactory.get(buffer, start_pos, fsKeys.get(i));
                 fsValues.add(val);
