@@ -114,13 +114,27 @@ public class Utils {
     }
 
     public static void extentRangeToFile(String imagePath, String outPath, long physAddr, long len) throws IOException {
-        byte[] extentBytes = new byte[(int)len];
-        ByteBuffer buff = GetBuffer(imagePath, (int)physAddr, (int)len);
+        byte[] extentBytes = new byte[(int) len];
+        ByteBuffer buff = GetBuffer(imagePath, (int) physAddr, (int) len);
         buff.get(extentBytes);
 
         File decompressedMishFile = new File(outPath);
-        FileOutputStream fileWriter= new FileOutputStream(decompressedMishFile.getAbsolutePath());
+        FileOutputStream fileWriter = new FileOutputStream(decompressedMishFile.getAbsolutePath());
         fileWriter.write(extentBytes);
         fileWriter.close();
+    }
+
+    // Recursively delete an entire folder
+    // We use this to delete the APFS output folder so files from previous runs aren't kept
+    // Source: https://www.tutorialspoint.com/how-to-delete-folder-and-sub-folders-using-java
+    public static void deleteFolder(File file) {
+        for (File subFile : file.listFiles()) {
+            if (subFile.isDirectory()) {
+                deleteFolder(subFile);
+            } else {
+                subFile.delete();
+            }
+        }
+        file.delete();
     }
 }

@@ -3,79 +3,93 @@ package apfs;
 import utils.Utils;
 
 import java.io.File;
-import java.io.FileOutputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
 import java.util.*;
 
 public class APFS {
+    // "root" dir will always have an inode number of 1
+    // See APFS reference pg 96
+    public static final long ROOT_DIR_OID = 1L;
+
+    // DREC record flags will tell us whether an entry is a Directory or a regular File.
+    // See APFS reference page 100
+    int DT_DIR = 4;
+    int DT_FILE = 8;
+
     private APFSContainer containerSb;
     private APFSVolume volumeSb;
 
     public APFS(String imagePath) throws IOException {
+        // Parse the Container Superblock (CSB)
         containerSb = APFSContainer.parseContainer(imagePath);
-
         int blockSize = containerSb.nx_block_size;
 
-        // 1. Access CSB OMAP via its OID from the Container Superblock
-        ByteBuffer csbOMapBuffer = Utils.GetBuffer(imagePath, (int) containerSb.nx_omap_oid * blockSize, blockSize);
-        OMap csbOMap = new OMap(csbOMapBuffer);
+        // Get the CSB Object Map (OMAP), which maps OIDs to values containing a physical address
+        // nx_omap_oid is a physical address
+        int csbOmapOffset = (int) containerSb.nx_omap_oid * blockSize;
+        ByteBuffer csbOMapBuffer = Utils.GetBuffer(imagePath, csbOmapOffset, blockSize);
+        OMap csbOMap = new OMap(csbOMapBuffer, imagePath, blockSize);
+        System.out.println(csbOMap);
 
-        // 2. Find the CSB BTree using an OID provided by the CSB OMAP
-        ByteBuffer rootNodeBuffer = Utils.GetBuffer(imagePath, (int) csbOMap.om_tree_oid * blockSize, blockSize);
-        BTreeNode rootNode = new BTreeNode(rootNodeBuffer);
-//        System.out.println(rootNode);
+        // Parse the Volume Superblock (VSB)
+        // Get the VSB physical address by searching for nx_fs_oid in the CSB OMAP
+        // nx_fs_oid: contains OIDs for VSBs - see APFS Reference pg. 32
+        int vsbOffset = csbOMap.parsedOmap.get(containerSb.nx_fs_oid).intValue() * blockSize;
+        ByteBuffer volumeSbBuffer = Utils.GetBuffer(imagePath, vsbOffset, blockSize);
+        volumeSb = new APFSVolume(volumeSbBuffer);
 
-        // 3. Parse the Volume Superblock using info from the CSB BTree
-        // TODO: Write general case to parse keys & values
-        ByteBuffer volumeSbBuffer = Utils.GetBuffer(imagePath, (int) rootNode.bTreeValues.get(0).paddr_t * blockSize, blockSize);
-        APFSVolume volumeSb = new APFSVolume(volumeSbBuffer);
-//        System.out.println(volumeSb);
-//
-//        // 4. Parse VSB OMap
-        ByteBuffer vsbOMapBuffer = Utils.GetBuffer(imagePath, (int) volumeSb.apfs_omap_oid * blockSize, blockSize);
-        OMap vsbOMap = new OMap(vsbOMapBuffer);
-//        System.out.println(vsbOMap);
+        // Parse the VSB OMap
+        // Example using "Many Files.dmg":
+        // 0                [1028, 1139]
+        // 1  [1028, 1030 to 1139]   [1139 to 1145]
+        //  -contains BTree Nodes with OMAP keys (oids 1028 and 1139)
+        //          1028's children are Leaf Nodes: oids 1028, 1030 to 1139
+        //          1139's children are Leaf Nodes: oids 1139 to 1145
+        //              We want to add each leaf node to the OMAP BTree -- their paddr's point us to actual FS Objects
+        int vsbOMapOffset = (int) volumeSb.apfs_omap_oid * blockSize;
+        System.out.println(volumeSb.apfs_omap_oid);
+        ByteBuffer vsbOMapBuffer = Utils.GetBuffer(imagePath, vsbOMapOffset, blockSize);
+        OMap vsbOMap = new OMap(vsbOMapBuffer, imagePath, blockSize);
+        System.out.println(vsbOMap);
 
-        // 5. Parse VSB B-Tree
-        ByteBuffer vsbRootNodeBuffer = Utils.GetBuffer(imagePath, (int) vsbOMap.om_tree_oid * blockSize, blockSize);
-        BTreeNode vsbRootNode = new BTreeNode(vsbRootNodeBuffer);
-        System.out.println(vsbRootNode);
+        // TODO: Find a better way to traverse the FS Object Tree
+        // Right now, we read ALL the nodes in the VSB OMAP since it looks like they're all FS Object Nodes anyways.
+        // This might not be the proper way, but it works for both "bigandsmall.dmg" and "Many Files.dmg"
 
-        // 6. Parse FS Object B Tree
-        // TODO: Actually parse B-Tree. We also need to parse OMAP BTrees properly.
-        ByteBuffer inodeBTreeRootNodeBuffer = Utils.GetBuffer(imagePath, (int) vsbRootNode.bTreeValues.get(0).paddr_t * blockSize, blockSize);
-        BTreeNode inodeBTreeRootNode = new BTreeNode(inodeBTreeRootNodeBuffer);
-        System.out.println("\n\n\n");
-        System.out.println(inodeBTreeRootNode);
-
-        // 7. Organize FS Objects by record object identifiers
+        // Parse BTree Nodes to get all inode, extent, drec
+        // Organize FS Objects by record object identifiers
         HashMap<Long, FSKeyValue> inodeRecords = new HashMap<>();
         HashMap<Long, FSKeyValue> extentRecords = new HashMap<>();
         HashMap<Long, ArrayList<FSKeyValue>> drecRecords = new HashMap<>();
 
-        for (FSKeyValue fskv : inodeBTreeRootNode.fsKeyValues) {
-            int type = (int) fskv.key.hdr.obj_type;
-            switch (type) {
-                case FSObjectKeyFactory.KEY_TYPE_INODE:
-                    inodeRecords.put(fskv.key.hdr.obj_id, fskv);
-                    break;
-                case FSObjectKeyFactory.KEY_TYPE_EXTENT:
-                    extentRecords.put(fskv.key.hdr.obj_id, fskv);
-                    break;
-                case FSObjectKeyFactory.KEY_TYPE_DREC:
-                    if (!drecRecords.containsKey(fskv.key.hdr.obj_id)) {
-                        drecRecords.put(fskv.key.hdr.obj_id, new ArrayList<>());
-                    }
-                    drecRecords.get(fskv.key.hdr.obj_id).add(fskv);
-                    break;
+        for (Long addr : vsbOMap.parsedOmap.values()) {
+            int offset = addr.intValue() * blockSize;
+            ByteBuffer fsObjNodeBuff = Utils.GetBuffer(imagePath, offset, blockSize * 2);
+            BTreeNode node = new BTreeNode(fsObjNodeBuff);
+
+            for (FSKeyValue fskv : node.fsKeyValues) {
+                int type = (int) fskv.key.hdr.obj_type;
+                switch (type) {
+                    case FSObjectKeyFactory.KEY_TYPE_INODE:
+                        inodeRecords.put(fskv.key.hdr.obj_id, fskv);
+                        break;
+                    case FSObjectKeyFactory.KEY_TYPE_EXTENT:
+                        extentRecords.put(fskv.key.hdr.obj_id, fskv);
+                        break;
+                    case FSObjectKeyFactory.KEY_TYPE_DREC:
+                        if (!drecRecords.containsKey(fskv.key.hdr.obj_id)) {
+                            drecRecords.put(fskv.key.hdr.obj_id, new ArrayList<>());
+                        }
+                        drecRecords.get(fskv.key.hdr.obj_id).add(fskv);
+                        break;
+                }
             }
         }
 
-        // a. Start parsing from Root Directory -- will always have inode number of 1
+        // Start parsing from Root Directory
         ArrayDeque<Tuple<FSKeyValue, String>> queue = new ArrayDeque<>();
-        // get the root folder
-        ArrayList<FSKeyValue> possible_roots = drecRecords.get(1L);
+        ArrayList<FSKeyValue> possible_roots = drecRecords.get(ROOT_DIR_OID);
         FSKeyValue root = null;
         for (FSKeyValue fsKeyValue : possible_roots) {
             DRECValue value = (DRECValue) fsKeyValue.value;
@@ -84,11 +98,6 @@ public class APFS {
                 break;
             }
         }
-
-        // See APFS reference page 100
-        // DREC record flags will tell us whether an entry is a Directory or a regular File.
-        int DT_DIR = 4;
-        int DT_FILE = 8;
 
         queue.add(new Tuple<>(root, "/"));
         while (!queue.isEmpty()) {
@@ -113,7 +122,9 @@ public class APFS {
                 EXTENTKey extentKey = (EXTENTKey) extentKv.key;
                 EXTENTValue extentValue = (EXTENTValue) extentKv.value;
 
-                // TODO: Parse file from the extent
+                System.out.println(extentValue);
+
+                // Parse file from the extent
                 String name = new String(key.name);
                 name = name.substring(0, name.length() - 1); // Remove null terminator character
                 String fileOutPath = "./output" + path + name;
@@ -133,10 +144,7 @@ public class APFS {
                     queue.add(new Tuple<>(child, path + name + "/"));
                 }
             }
-
-
         }
-
     }
 
     @Override

@@ -1,16 +1,11 @@
 package apfs;
 
-import java.math.BigInteger;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
-import java.util.Collections;
 
 public class BTreeNode {
 
-    public static final int BTREE_KEY_LENGTH = 8;
-    public static final int BTREE_TOC_LENGTH = 8;
-    public static final int BTREE_VALUE_LENGTH = 16;
 
     public BlockHeader btn_o;
     public short btn_flags;
@@ -28,9 +23,13 @@ public class BTreeNode {
     public short btn_key_free_list_len;
     public short btn_val_free_list_off;
     public short btn_val_free_list_len;
-    public ArrayList<BTreeTOCEntry> bTreeTOC = new ArrayList<BTreeTOCEntry>();
-    public ArrayList<BTreeKey> bTreeKeys = new ArrayList<BTreeKey>();
-    public ArrayList<BTreeValue> bTreeValues = new ArrayList<BTreeValue>();
+    public ArrayList<BTreeTOCEntry> tableOfContents = new ArrayList<>();
+
+    public ArrayList<FSObjectKey> fsKeys = new ArrayList<>();
+
+    public ArrayList<OMAPKey> omapKeys = new ArrayList<>();
+    public ArrayList<OMAPValue> omapValues = new ArrayList<>();
+    public ArrayList<FSObjectValue> fsValues = new ArrayList<>();
     public ArrayList<FSKeyValue> fsKeyValues = new ArrayList<>();
 
     public BTreeInfo bTreeInfo;
@@ -54,53 +53,63 @@ public class BTreeNode {
         btn_val_free_list_off = buffer.getShort();
         btn_val_free_list_len = buffer.getShort();
 
-        buffer.position(buffer.position() + btn_table_space_off);
-        for (int i = 0; i < btn_table_space_len / BTREE_TOC_LENGTH; i++) {
-            BTreeTOCEntry entry = new BTreeTOCEntry(buffer);
-            if (i < btn_nkeys)
-                bTreeTOC.add(entry);
-        }
+        // Fixed-size indicates the node contains OMAP keys & values.
+        // Otherwise, it contains variable-length FS Object keys & values
+        boolean isOMAP = this.btn_flags_is_fixed_KV_size;
 
-        ArrayList<FSObjectKey> fsObjectKeys = new ArrayList<>();
-        ArrayList<FSObjectValue> fsObjectValues = new ArrayList<>();
+        int toc_start = buffer.position() + btn_table_space_off;
+        int toc_end = buffer.position() + btn_table_space_off + btn_table_space_len;
+        buffer.position(toc_start);
+
+        for (int keyNum = 1; keyNum <= btn_nkeys; keyNum++) {
+            tableOfContents.add(new BTreeTOCEntry(buffer, isOMAP));
+        }
+        buffer.position(toc_end);
+
 
         // remember the key start position -- key offsets are calculated relative to this position
         int key_start_pos = buffer.position();
-        for (BTreeTOCEntry b : bTreeTOC) {
+
+        // Keys
+        for (BTreeTOCEntry b : tableOfContents) {
             buffer.position(key_start_pos + b.key_offset);
-            bTreeKeys.add(new BTreeKey(buffer));
-
-            FSObjectKey obj = FSObjectKeyFactory.get(buffer, key_start_pos + b.key_offset);
-            fsObjectKeys.add(obj);
+            if (isOMAP) {
+                omapKeys.add(new OMAPKey(buffer));
+            } else {
+                FSObjectKey obj = FSObjectKeyFactory.get(buffer, key_start_pos + b.key_offset);
+                fsKeys.add(obj);
+            }
         }
 
-        // TODO: 4096 skip to track values area
-//        for (BTreeTOCEntry b : bTreeTOC) {
-//            // TODO: Are we using value length properly? e.g. some values have length 16 while others might have 32.... FIX ME
-//            buffer.position(value_start_pos - b.value_offset - BTREE_VALUE_LENGTH);
-//            bTreeValues.add(new BTreeValue(buffer));
-//            buffer.position(value_start_pos - b.value_offset - BTREE_VALUE_LENGTH);
-//            byte[] bytes = new byte[b.value_length];
-//            buffer.get(bytes);
-////            System.out.println(Utils.OriginalBytesToHexString(bytes));
-//        }
-//        Collections.reverse(bTreeValues);
+        int infoSize = (btn_flags_is_root ? 40 : 0); // Only root nodes have a BTreeInfo structure
+        int value_end_pos = start_of_node + 4096 - infoSize;
 
-        int value_start_pos = start_of_node + 4096 - 40;
-        for (int i = 0; i < bTreeTOC.size(); i++) {
-            buffer.position(value_start_pos - bTreeTOC.get(i).value_offset - BTREE_VALUE_LENGTH);
-            bTreeValues.add(new BTreeValue(buffer));
-            int start_pos = value_start_pos - bTreeTOC.get(i).value_offset;
-            FSObjectValue val = FSObjectValueFactory.get(buffer, start_pos, fsObjectKeys.get(i));
-            fsObjectValues.add(val);
+        for (int i = 0; i < tableOfContents.size(); i++) {
+            BTreeTOCEntry entry = tableOfContents.get(i);
+            int start_pos = value_end_pos - entry.value_offset;
+            buffer.position(start_pos);
+            if (isOMAP) {
+                omapValues.add(new OMAPValue(buffer, btn_flags_is_leaf));
+            } else {
+                try {
+                    FSObjectValue val = FSObjectValueFactory.get(buffer, fsKeys.get(i));
+                    fsValues.add(val);
+                } catch (Exception e) {
+                    // TODO: Fix Buffer Underflow Exceptions
+                    e.printStackTrace();
+                    // Not sure why we're getting it, but if it happens we'll add a null value as a placeholder
+                    fsValues.add(null);
+                }
+            }
         }
 
-        for (int i = 0; i < fsObjectKeys.size(); i++) {
-            fsKeyValues.add(new FSKeyValue(fsObjectKeys.get(i), fsObjectValues.get(i)));
+        for (int i = 0; i < fsKeys.size(); i++) {
+            fsKeyValues.add(new FSKeyValue(fsKeys.get(i), fsValues.get(i)));
         }
 
-        buffer.position(value_start_pos);
-
+        // Move the the start of the value area, which is just before the BTreeNodeInfo (if this node is a root node)
+        if (!btn_flags_is_root) return;
+        buffer.position(value_end_pos);
         bTreeInfo = new BTreeInfo(buffer);
     }
 
@@ -131,68 +140,35 @@ public class BTreeNode {
                 ", btn_key_free_list_len=" + btn_key_free_list_len +
                 ", btn_val_free_list_off=" + btn_val_free_list_off +
                 ", btn_val_free_list_len=" + btn_val_free_list_len +
-                ", bTreeTOC=" + bTreeTOC +
-                ", bTreeKeys=" + bTreeKeys +
-                ", bTreeValues=" + bTreeValues +
+                ", \n\tbTreeTOC=" + tableOfContents +
+                ", \n\tomapKeys=" + omapKeys +
+                ", \n\tomapValues=" + omapValues +
+                ", \n\tfsKeys=" + fsKeys +
+                ", fsValues=" + fsValues +
                 ", fsKeyValues=" + fsKeyValues +
-                ", bTreeInfo=" + bTreeInfo +
+                ", \n\tbTreeInfo=" + bTreeInfo +
                 '}';
     }
 }
 
-/*
-interface BTreeTOCEntry {
 
-}
-
-class BTreeTOCEntryV implements BTreeTOCEntry{
-
-    public short key_offset;
-    public short key_length;
-    public short value_offset;
-    public short value_length;
-
-    public BTreeTOCEntryV(ByteBuffer buffer){
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        key_offset = buffer.getShort();
-        key_length = buffer.getShort();
-        value_offset = buffer.getShort();
-        value_length = buffer.getShort();
-    }
-    interface BTreeTOCEntry {
-
-}
-
-class BTreeTOCEntryV implements BTreeTOCEntry{
-
-    public short key_offset;
-    public short key_length;
-    public short value_offset;
-    public short value_length;
-
-    public BTreeTOCEntryV(ByteBuffer buffer){
-        buffer.order(ByteOrder.LITTLE_ENDIAN);
-        key_offset = buffer.getShort();
-        key_length = buffer.getShort();
-        value_offset = buffer.getShort();
-        value_length = buffer.getShort();
-    }
-*/
-
-
+// Table of Contents entry
+// See APFS Reference pg. 129
 class BTreeTOCEntry {
-
+    // -1 will indicate there is no key length
+    //      -- because fixed-length TOC Entries will don't read length bytes.
     public short key_offset;
-    public short key_length;
+    public short key_length = -1;
     public short value_offset;
-    public short value_length;
+    public short value_length = -1;
 
-    public BTreeTOCEntry(ByteBuffer buffer) {
+    public BTreeTOCEntry(ByteBuffer buffer, boolean isFixed) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
+
         key_offset = buffer.getShort();
-        key_length = buffer.getShort();
+        if (!isFixed) key_length = buffer.getShort();
         value_offset = buffer.getShort();
-        value_length = buffer.getShort();
+        if (!isFixed) value_length = buffer.getShort();
     }
 
     @Override
