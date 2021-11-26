@@ -63,13 +63,13 @@ public class OMap {
                 for (int i = 0; i < n.omapKeys.size(); i++) {
                     OMAPKey key = n.omapKeys.get(i);
                     OMAPValue val = n.omapValues.get(i);
-                    System.out.println("LEAF ENTRY KEY " + key.ok_oid);
-                    System.out.println("LEAF ENTRY VAL " + val);
+//                    System.out.println("LEAF ENTRY KEY " + key.ok_oid);
+//                    System.out.println("LEAF ENTRY VAL " + val);
                     parsedOmap.put(key.ok_oid, val.paddr_t);
                 }
             } else {
                 for (OMAPValue omapVal : n.omapValues) {
-                    System.out.println("CHILD NODE AT BLOCK " + omapVal.paddr_t);
+//                    System.out.println("CHILD NODE AT BLOCK " + omapVal.paddr_t);
                     int physOffset = (int) omapVal.paddr_t * blockSize;
                     ByteBuffer childNodeBytes = Utils.GetBuffer(imagePath, physOffset, blockSize);
                     nodes.add(new BTreeNode(childNodeBytes));

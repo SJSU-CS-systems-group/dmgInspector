@@ -8,6 +8,15 @@ import java.nio.ByteBuffer;
 import java.util.*;
 
 public class APFS {
+    // "root" dir will always have an inode number of 1
+    // See APFS reference pg 96
+    public static final long ROOT_DIR_OID = 1L;
+
+    // DREC record flags will tell us whether an entry is a Directory or a regular File.
+    // See APFS reference page 100
+    int DT_DIR = 4;
+    int DT_FILE = 8;
+
     private APFSContainer containerSb;
     private APFSVolume volumeSb;
 
@@ -28,34 +37,25 @@ public class APFS {
         // nx_fs_oid: contains OIDs for VSBs - see APFS Reference pg. 32
         int vsbOffset = csbOMap.parsedOmap.get(containerSb.nx_fs_oid).intValue() * blockSize;
         ByteBuffer volumeSbBuffer = Utils.GetBuffer(imagePath, vsbOffset, blockSize);
-        APFSVolume volumeSb = new APFSVolume(volumeSbBuffer);
+        volumeSb = new APFSVolume(volumeSbBuffer);
 
         // Parse the VSB OMap
-        // VSB apfs_omap_oid field is the physical block number (See APFS Reference pg. 55)
-        // TODO: Finish OMAP BTree Parsing in OMap.java -- right now, we're only parsing the root node
-        // TODO: MUST parse child nodes! If we don't, our values will be wrong.
-        // BTREE structure (Many Files.dmg APFS image)!
-        // Start at VSB OMap's BTree Root Node (oid 5403)
-
+        // Example using "Many Files.dmg":
         // 0                [1028, 1139]
         // 1  [1028, 1030 to 1139]   [1139 to 1145]
-
-        //  -btn_level = 1, meaning it has 1 level of child nodes below it
         //  -contains BTree Nodes with OMAP keys (oids 1028 and 1139)
         //          1028's children are Leaf Nodes: oids 1028, 1030 to 1139
         //          1139's children are Leaf Nodes: oids 1139 to 1145
         //              We want to add each leaf node to the OMAP BTree -- their paddr's point us to actual FS Objects
-
         int vsbOMapOffset = (int) volumeSb.apfs_omap_oid * blockSize;
         System.out.println(volumeSb.apfs_omap_oid);
         ByteBuffer vsbOMapBuffer = Utils.GetBuffer(imagePath, vsbOMapOffset, blockSize);
         OMap vsbOMap = new OMap(vsbOMapBuffer, imagePath, blockSize);
         System.out.println(vsbOMap);
 
-        int fsTreeOffset = vsbOMap.parsedOmap.get(volumeSb.apfs_root_tree_oid).intValue() * blockSize;
-        ByteBuffer fsTreeRootBuffer = Utils.GetBuffer(imagePath, fsTreeOffset, blockSize);
-        BTreeNode fsTreeRootNode = new BTreeNode(fsTreeRootBuffer);
-        System.out.println(fsTreeRootNode);
+        // TODO: Find a better way to traverse the FS Object Tree
+        // Right now, we read ALL the nodes in the VSB OMAP since it looks like they're all FS Object Nodes anyways.
+        // This might not be the proper way, but it works for both "bigandsmall.dmg" and "Many Files.dmg"
 
         // Parse BTree Nodes to get all inode, extent, drec
         // Organize FS Objects by record object identifiers
@@ -63,28 +63,33 @@ public class APFS {
         HashMap<Long, FSKeyValue> extentRecords = new HashMap<>();
         HashMap<Long, ArrayList<FSKeyValue>> drecRecords = new HashMap<>();
 
-        for (FSKeyValue fskv : fsTreeRootNode.fsKeyValues) {
-            int type = (int) fskv.key.hdr.obj_type;
-            switch (type) {
-                case FSObjectKeyFactory.KEY_TYPE_INODE:
-                    inodeRecords.put(fskv.key.hdr.obj_id, fskv);
-                    break;
-                case FSObjectKeyFactory.KEY_TYPE_EXTENT:
-                    extentRecords.put(fskv.key.hdr.obj_id, fskv);
-                    break;
-                case FSObjectKeyFactory.KEY_TYPE_DREC:
-                    if (!drecRecords.containsKey(fskv.key.hdr.obj_id)) {
-                        drecRecords.put(fskv.key.hdr.obj_id, new ArrayList<>());
-                    }
-                    drecRecords.get(fskv.key.hdr.obj_id).add(fskv);
-                    break;
+        for (Long addr : vsbOMap.parsedOmap.values()) {
+            int offset = addr.intValue() * blockSize;
+            ByteBuffer fsObjNodeBuff = Utils.GetBuffer(imagePath, offset, blockSize * 2);
+            BTreeNode node = new BTreeNode(fsObjNodeBuff);
+
+            for (FSKeyValue fskv : node.fsKeyValues) {
+                int type = (int) fskv.key.hdr.obj_type;
+                switch (type) {
+                    case FSObjectKeyFactory.KEY_TYPE_INODE:
+                        inodeRecords.put(fskv.key.hdr.obj_id, fskv);
+                        break;
+                    case FSObjectKeyFactory.KEY_TYPE_EXTENT:
+                        extentRecords.put(fskv.key.hdr.obj_id, fskv);
+                        break;
+                    case FSObjectKeyFactory.KEY_TYPE_DREC:
+                        if (!drecRecords.containsKey(fskv.key.hdr.obj_id)) {
+                            drecRecords.put(fskv.key.hdr.obj_id, new ArrayList<>());
+                        }
+                        drecRecords.get(fskv.key.hdr.obj_id).add(fskv);
+                        break;
+                }
             }
         }
 
-        // a. Start parsing from Root Directory -- will always have inode number of 1
+        // Start parsing from Root Directory
         ArrayDeque<Tuple<FSKeyValue, String>> queue = new ArrayDeque<>();
-        // get the root folder
-        ArrayList<FSKeyValue> possible_roots = drecRecords.get(1L);
+        ArrayList<FSKeyValue> possible_roots = drecRecords.get(ROOT_DIR_OID);
         FSKeyValue root = null;
         for (FSKeyValue fsKeyValue : possible_roots) {
             DRECValue value = (DRECValue) fsKeyValue.value;
@@ -93,11 +98,6 @@ public class APFS {
                 break;
             }
         }
-
-        // See APFS reference page 100
-        // DREC record flags will tell us whether an entry is a Directory or a regular File.
-        int DT_DIR = 4;
-        int DT_FILE = 8;
 
         queue.add(new Tuple<>(root, "/"));
         while (!queue.isEmpty()) {
@@ -144,11 +144,7 @@ public class APFS {
                     queue.add(new Tuple<>(child, path + name + "/"));
                 }
             }
-
-            //
-            //
         }
-
     }
 
     @Override

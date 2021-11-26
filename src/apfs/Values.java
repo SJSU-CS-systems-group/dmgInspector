@@ -38,14 +38,17 @@ class OMAPValue {
 
 class FSObjectValueFactory {
 
-    public static FSObjectValue get(ByteBuffer buffer, int start_position, FSObjectKey fsObjectKey) {
-        buffer.position(start_position);
+    public static final int OBJ_TYPE_INODE = 3;
+    public static final int OBJ_TYPE_EXTENT = 8;
+    public static final int OBJ_TYPE_DREC = 9;
+
+    public static FSObjectValue get(ByteBuffer buffer, FSObjectKey fsObjectKey) {
         switch ((int) fsObjectKey.hdr.obj_type) {
-            case 3:
+            case OBJ_TYPE_INODE:
                 return new INODEValue(buffer);
-            case 8:
+            case OBJ_TYPE_EXTENT:
                 return new EXTENTValue(buffer);
-            case 9:
+            case OBJ_TYPE_DREC:
                 return new DRECValue(buffer);
             default:
                 return null;

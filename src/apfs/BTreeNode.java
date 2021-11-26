@@ -1,8 +1,5 @@
 package apfs;
 
-import jdk.jshell.execution.Util;
-import utils.Utils;
-
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.util.ArrayList;
@@ -26,7 +23,7 @@ public class BTreeNode {
     public short btn_key_free_list_len;
     public short btn_val_free_list_off;
     public short btn_val_free_list_len;
-    public ArrayList<BTreeTOCEntry> bTreeTOC = new ArrayList<>();
+    public ArrayList<BTreeTOCEntry> tableOfContents = new ArrayList<>();
 
     public ArrayList<FSObjectKey> fsKeys = new ArrayList<>();
 
@@ -65,7 +62,7 @@ public class BTreeNode {
         buffer.position(toc_start);
 
         for (int keyNum = 1; keyNum <= btn_nkeys; keyNum++) {
-            bTreeTOC.add(new BTreeTOCEntry(buffer, isOMAP));
+            tableOfContents.add(new BTreeTOCEntry(buffer, isOMAP));
         }
         buffer.position(toc_end);
 
@@ -74,7 +71,7 @@ public class BTreeNode {
         int key_start_pos = buffer.position();
 
         // Keys
-        for (BTreeTOCEntry b : bTreeTOC) {
+        for (BTreeTOCEntry b : tableOfContents) {
             buffer.position(key_start_pos + b.key_offset);
             if (isOMAP) {
                 omapKeys.add(new OMAPKey(buffer));
@@ -87,18 +84,23 @@ public class BTreeNode {
         int infoSize = (btn_flags_is_root ? 40 : 0); // Only root nodes have a BTreeInfo structure
         int value_end_pos = start_of_node + 4096 - infoSize;
 
-        for (int i = 0; i < bTreeTOC.size(); i++) {
-            BTreeTOCEntry entry = bTreeTOC.get(i);
+        for (int i = 0; i < tableOfContents.size(); i++) {
+            BTreeTOCEntry entry = tableOfContents.get(i);
             int start_pos = value_end_pos - entry.value_offset;
-            // TODO: Generalize -- fixed key-value length should be acquired from node info?
             buffer.position(start_pos);
             if (isOMAP) {
                 omapValues.add(new OMAPValue(buffer, btn_flags_is_leaf));
             } else {
-                FSObjectValue val = FSObjectValueFactory.get(buffer, start_pos, fsKeys.get(i));
-                fsValues.add(val);
+                try {
+                    FSObjectValue val = FSObjectValueFactory.get(buffer, fsKeys.get(i));
+                    fsValues.add(val);
+                } catch (Exception e) {
+                    // TODO: Fix Buffer Underflow Exceptions
+                    e.printStackTrace();
+                    // Not sure why we're getting it, but if it happens we'll add a null value as a placeholder
+                    fsValues.add(null);
+                }
             }
-
         }
 
         for (int i = 0; i < fsKeys.size(); i++) {
@@ -138,7 +140,7 @@ public class BTreeNode {
                 ", btn_key_free_list_len=" + btn_key_free_list_len +
                 ", btn_val_free_list_off=" + btn_val_free_list_off +
                 ", btn_val_free_list_len=" + btn_val_free_list_len +
-                ", \n\tbTreeTOC=" + bTreeTOC +
+                ", \n\tbTreeTOC=" + tableOfContents +
                 ", \n\tomapKeys=" + omapKeys +
                 ", \n\tomapValues=" + omapValues +
                 ", \n\tfsKeys=" + fsKeys +
