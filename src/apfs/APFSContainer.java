@@ -37,7 +37,9 @@ public class APFSContainer {
     public int nx_max_file_systems;
     public long[] nx_fs_oid;
 
-    public APFSContainer(ByteBuffer buffer) {
+    public OMap csbOMap;
+
+    public APFSContainer(ByteBuffer buffer, String imagePath) throws IOException {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         blockHeader = new BlockHeader(buffer.slice(0, 32));
         buffer.position(32);
@@ -70,11 +72,17 @@ public class APFSContainer {
         for (int i = 0; i < nx_max_file_systems; i++) {
             nx_fs_oid[i] = buffer.getLong();
         }
+
+        // Get the CSB Object Map (OMAP), which maps OIDs to values containing a physical address
+        // nx_omap_oid is a physical address
+        int csbOmapOffset = (int) nx_omap_oid * nx_block_size;
+        ByteBuffer csbOMapBuffer = Utils.GetBuffer(imagePath, csbOmapOffset, nx_block_size);
+        csbOMap = new OMap(csbOMapBuffer, imagePath, nx_block_size);
     }
 
     public static APFSContainer parseContainer(String path) throws IOException {
         ByteBuffer buffer = Utils.GetBuffer(path, 0, 512);
-        APFSContainer block = new APFSContainer(buffer);
+        APFSContainer block = new APFSContainer(buffer, path);
         return block;
     }
 

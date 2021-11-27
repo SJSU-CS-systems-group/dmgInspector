@@ -1,15 +1,33 @@
 package apfs;
 
+import utils.Tuple;
 import utils.Utils;
 
+import java.io.File;
 import java.io.IOException;
 import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
+import java.util.ArrayDeque;
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.HashMap;
 
 public class APFSVolume {
+    // "root" dir will always have an inode number of 1
+    // See APFS reference pg 96
+    public static final long ROOT_DIR_OID = 1L;
+
+    // DREC record flags will tell us whether an entry is a Directory or a regular File.
+    // See APFS reference page 100
+    int DT_DIR = 4;
+    int DT_FILE = 8;
+
+    private int blockSize;
+    private String imagePath;
+
+    // Volume fields
     public BlockHeader blockHeader;
     public byte[] apfs_magic = new byte[4];
     public int apfs_fs_index;
@@ -61,7 +79,16 @@ public class APFSVolume {
     public long apfs_root_to_xid;
     public long apfs_er_state_oid;
 
-    public APFSVolume(ByteBuffer buffer) {
+    public OMap volumeOMap;
+
+    public HashMap<Long, FSKeyValue> inodeRecords = new HashMap<>();
+    public HashMap<Long, FSKeyValue> extentRecords = new HashMap<>();
+    public HashMap<Long, ArrayList<FSKeyValue>> drecRecords = new HashMap<>();
+
+    public APFSVolume(ByteBuffer buffer, int blockSize, String imagePath) throws IOException {
+        this.blockSize = blockSize;
+        this.imagePath = imagePath;
+
         buffer.order(ByteOrder.LITTLE_ENDIAN);
         blockHeader = new BlockHeader(buffer);
         buffer.get(apfs_magic);
@@ -113,22 +140,136 @@ public class APFSVolume {
         apfs_reserved = buffer.getShort();
         apfs_root_to_xid = buffer.getLong();
         apfs_er_state_oid = buffer.getLong();
+
+
+        volumeOMap = getVolumeOMap();
+
+        // TODO: Finish file structure parsing
+        // Start parsing from Root Directory
+        ArrayDeque<Tuple<FSKeyValue, String>> queue = new ArrayDeque<>();
+        ArrayList<FSKeyValue> possible_roots = drecRecords.get(ROOT_DIR_OID);
+        FSKeyValue root = null;
+        for (FSKeyValue fsKeyValue : possible_roots) {
+            DRECValue value = (DRECValue) fsKeyValue.value;
+            if (value.fileId == 2) {
+                root = fsKeyValue;
+                break;
+            }
+        }
+
+        queue.add(new Tuple<>(root, "/"));
+        while (!queue.isEmpty()) {
+            Tuple<FSKeyValue, String> tuple = queue.removeFirst();
+            FSKeyValue curr = tuple.x;
+            String path = tuple.y;
+
+            System.out.println("\n" + path + " -> " + curr);
+
+            DRECKey key = (DRECKey) curr.key;
+            DRECValue value = (DRECValue) curr.value;
+
+            File folder = new File("./output" + path);
+            if (!folder.exists()) {
+                folder.mkdir();
+            }
+
+            if (value.flags == DT_FILE) {
+                // No new files to add since this record is a Regular File
+                // Find related extent
+                FSKeyValue extentKv = extentRecords.get(value.fileId);
+                EXTENTKey extentKey = (EXTENTKey) extentKv.key;
+                EXTENTValue extentValue = (EXTENTValue) extentKv.value;
+
+                System.out.println(extentValue);
+
+                // Parse file from the extent
+                String name = new String(key.name);
+                name = name.substring(0, name.length() - 1); // Remove null terminator character
+                String fileOutPath = "./output" + path + name;
+                System.out.println("\n" + fileOutPath + " -> ");
+                Utils.extentRangeToFile(imagePath, fileOutPath, extentValue.physBlockNum * blockSize, extentValue.length);
+
+                continue;
+            }
+
+            // Add new files to the queue since this record is a Directory
+            ArrayList<FSKeyValue> children = drecRecords.get(value.fileId);
+            if (children != null) {
+                for (FSKeyValue child : children) {
+                    String name = new String(key.name);
+                    name = name.substring(0, name.length() - 1); // Remove null terminator character
+                    queue.add(new Tuple<>(child, path + name + "/"));
+                }
+            }
+        }
     }
 
-    public static APFSVolume parseVolume(String path, int volumeOffset, int volumeLength) throws IOException {
-        ByteBuffer buffer = Utils.GetBuffer(path, volumeOffset, volumeLength);
-        ByteBuffer buffer2 = Utils.GetBuffer(path, volumeOffset, volumeLength);
-        // 1. Find the OMAP
-        byte[] b = new byte[buffer2.remaining()];
-        buffer2.get(b);
-        System.out.println(b);
+    private OMap getVolumeOMap() throws IOException {
+        // Parse the VSB OMap
+        // Example using "Many Files.dmg":
+        // 0                [1028, 1139]
+        // 1  [1028, 1030 to 1139]   [1139 to 1145]
+        //  -contains BTree Nodes with OMAP keys (oids 1028 and 1139)
+        //          1028's children are Leaf Nodes: oids 1028, 1030 to 1139
+        //          1139's children are Leaf Nodes: oids 1139 to 1145
+        //              We want to add each leaf node to the OMAP BTree -- their paddr's point us to actual FS Objects
+        int vsbOMapOffset = (int) apfs_omap_oid * blockSize;
+        ByteBuffer vsbOMapBuffer = Utils.GetBuffer(imagePath, vsbOMapOffset, blockSize);
+        OMap volumeOMap = new OMap(vsbOMapBuffer, imagePath, blockSize);
 
-        // 2. Parse the OMAP to a BTree
 
-        // 3. Plug in Volume OID to get volume offset!
+        // Parse BTree Nodes to get all inode, extent, drec
+        // Organize FS Objects by record object identifiers
+        // TODO: Find a better way to traverse the FS Object Tree
+        // Right now, we read ALL the nodes in the VSB OMAP since it looks like they're all FS Object Nodes anyways.
+        // This might not be the proper way, but it works for both "bigandsmall.dmg" and "Many Files.dmg"
+        for (Long addr : volumeOMap.parsedOmap.values()) {
+            int offset = addr.intValue() * blockSize;
+            ByteBuffer fsObjNodeBuff = Utils.GetBuffer(imagePath, offset, blockSize * 2);
+            BTreeNode node = new BTreeNode(fsObjNodeBuff);
 
-        APFSVolume block = new APFSVolume(buffer);
-        return block;
+            for (FSKeyValue fskv : node.fsKeyValues) {
+                int type = (int) fskv.key.hdr.obj_type;
+                switch (type) {
+                    case FSObjectKeyFactory.KEY_TYPE_INODE:
+                        inodeRecords.put(fskv.key.hdr.obj_id, fskv);
+                        break;
+                    case FSObjectKeyFactory.KEY_TYPE_EXTENT:
+                        extentRecords.put(fskv.key.hdr.obj_id, fskv);
+                        break;
+                    case FSObjectKeyFactory.KEY_TYPE_DREC:
+                        if (!drecRecords.containsKey(fskv.key.hdr.obj_id)) {
+                            drecRecords.put(fskv.key.hdr.obj_id, new ArrayList<>());
+                        }
+                        drecRecords.get(fskv.key.hdr.obj_id).add(fskv);
+                        break;
+                }
+            }
+        }
+        for (Long addr : volumeOMap.parsedOmap.values()) {
+            int offset = addr.intValue() * blockSize;
+            ByteBuffer fsObjNodeBuff = Utils.GetBuffer(imagePath, offset, blockSize * 2);
+            BTreeNode node = new BTreeNode(fsObjNodeBuff);
+
+            for (FSKeyValue fskv : node.fsKeyValues) {
+                int type = (int) fskv.key.hdr.obj_type;
+                switch (type) {
+                    case FSObjectKeyFactory.KEY_TYPE_INODE:
+                        inodeRecords.put(fskv.key.hdr.obj_id, fskv);
+                        break;
+                    case FSObjectKeyFactory.KEY_TYPE_EXTENT:
+                        extentRecords.put(fskv.key.hdr.obj_id, fskv);
+                        break;
+                    case FSObjectKeyFactory.KEY_TYPE_DREC:
+                        if (!drecRecords.containsKey(fskv.key.hdr.obj_id)) {
+                            drecRecords.put(fskv.key.hdr.obj_id, new ArrayList<>());
+                        }
+                        drecRecords.get(fskv.key.hdr.obj_id).add(fskv);
+                        break;
+                }
+            }
+        }
+        return volumeOMap;
     }
 
     @Override

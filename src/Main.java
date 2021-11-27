@@ -8,10 +8,11 @@ import java.io.IOException;
 public class Main {
     // TODO: Final project
     // dmginspector CLI TOOL --
-    // 1. Dump volume info -- dmgi volumes
-    // 2. Dump volume file objects -- dmgi fsobj <?volume>
-    // 3. Dump file system structure -- dmgi files
+    // 1. Dump volume info -- dmgi volumes -> getAPFSVolumes()
+    // 2. Dump volume file objects -- dmgi fsobj <?volume> -> getFSObjects(index): ArrayList<FSKeyValue>
+    // 3. Dump file system structure -- dmgi files -> getFSStructure(index): ArrayList<FSObject>
     // 4. Extract file(s) -- dmgi extract <?specific_file>
+    //  TODO: temp folder for extracted DMG Files?
 
     public static void main(String[] args) throws IOException {
 //        String imgPath = utils.Utils.chooseImagePath();
@@ -42,13 +43,12 @@ public class Main {
         // 3. APFS image (4) root folder gets parsed to output/root
 
         // Uncomment ONE of these
-//        String dmgFile = "src/images/bigandsmall.dmg";
-        String dmgFile = "src/images/Many Files.dmg";
+        String dmgFile = "src/images/bigandsmall.dmg";
+//        String dmgFile = "src/images/Many Files.dmg";
 
         DMGInspector dmgInspector = DMGInspector.parseImage(dmgFile);
 
         String filepath = "output/4_diskimageApple_APFS4";
         APFS apfs = new APFS(filepath);
-        System.out.println(apfs);
     }
 }
