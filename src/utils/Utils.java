@@ -6,6 +6,7 @@ import javax.swing.*;
 import java.io.*;
 import java.nio.ByteBuffer;
 import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.text.DateFormat;
@@ -114,6 +115,10 @@ public class Utils {
     }
 
     public static void extentRangeToFile(String imagePath, String outPath, long physAddr, long len) throws IOException {
+
+        Path path = Paths.get(outPath);
+        Files.createDirectories(path.getParent());
+
         byte[] extentBytes = new byte[(int) len];
         ByteBuffer buff = GetBuffer(imagePath, (int) physAddr, (int) len);
         buff.get(extentBytes);

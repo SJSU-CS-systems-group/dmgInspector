@@ -84,6 +84,7 @@ public class APFSVolume {
     public HashMap<Long, FSKeyValue> inodeRecords = new HashMap<>();
     public HashMap<Long, FSKeyValue> extentRecords = new HashMap<>();
     public HashMap<Long, ArrayList<FSKeyValue>> drecRecords = new HashMap<>();
+    public ArrayList<Tuple<String, EXTENTValue>> files = new ArrayList<>();
 
     public APFSVolume(ByteBuffer buffer, int blockSize, String imagePath) throws IOException {
         this.blockSize = blockSize;
@@ -140,10 +141,27 @@ public class APFSVolume {
         apfs_reserved = buffer.getShort();
         apfs_root_to_xid = buffer.getLong();
         apfs_er_state_oid = buffer.getLong();
-
-
         volumeOMap = getVolumeOMap();
+        files = getFiles();
+        System.out.println(files);
+        extractAllFiles();
+    }
 
+    public void extractFile(int fileId) throws IOException{
+        Tuple<String, EXTENTValue> fileToExtract = files.get(fileId);
+        EXTENTValue fileExtent = fileToExtract.y;
+        Utils.extentRangeToFile(imagePath, fileToExtract.x, fileExtent.physBlockNum * blockSize, fileExtent.length);
+    }
+
+    public void extractAllFiles() throws  IOException{
+        for (Tuple<String, EXTENTValue> fileToExtract: files) {
+            EXTENTValue fileExtent = fileToExtract.y;
+            Utils.extentRangeToFile(imagePath, fileToExtract.x, fileExtent.physBlockNum * blockSize, fileExtent.length);
+        }
+    }
+
+    private ArrayList<Tuple<String, EXTENTValue>> getFiles() {
+        ArrayList<Tuple<String, EXTENTValue>> files = new ArrayList<>();
         // TODO: Finish file structure parsing
         // Start parsing from Root Directory
         ArrayDeque<Tuple<FSKeyValue, String>> queue = new ArrayDeque<>();
@@ -163,14 +181,12 @@ public class APFSVolume {
             FSKeyValue curr = tuple.x;
             String path = tuple.y;
 
-            System.out.println("\n" + path + " -> " + curr);
-
             DRECKey key = (DRECKey) curr.key;
             DRECValue value = (DRECValue) curr.value;
 
             File folder = new File("./output" + path);
             if (!folder.exists()) {
-                folder.mkdir();
+//                folder.mkdir();
             }
 
             if (value.flags == DT_FILE) {
@@ -180,14 +196,12 @@ public class APFSVolume {
                 EXTENTKey extentKey = (EXTENTKey) extentKv.key;
                 EXTENTValue extentValue = (EXTENTValue) extentKv.value;
 
-                System.out.println(extentValue);
-
                 // Parse file from the extent
                 String name = new String(key.name);
                 name = name.substring(0, name.length() - 1); // Remove null terminator character
                 String fileOutPath = "./output" + path + name;
-                System.out.println("\n" + fileOutPath + " -> ");
-                Utils.extentRangeToFile(imagePath, fileOutPath, extentValue.physBlockNum * blockSize, extentValue.length);
+                files.add(new Tuple<>(fileOutPath, extentValue));
+//                Utils.extentRangeToFile(imagePath, fileOutPath, extentValue.physBlockNum * blockSize, extentValue.length);
 
                 continue;
             }
@@ -202,6 +216,7 @@ public class APFSVolume {
                 }
             }
         }
+        return files;
     }
 
     private OMap getVolumeOMap() throws IOException {
@@ -223,29 +238,7 @@ public class APFSVolume {
         // TODO: Find a better way to traverse the FS Object Tree
         // Right now, we read ALL the nodes in the VSB OMAP since it looks like they're all FS Object Nodes anyways.
         // This might not be the proper way, but it works for both "bigandsmall.dmg" and "Many Files.dmg"
-        for (Long addr : volumeOMap.parsedOmap.values()) {
-            int offset = addr.intValue() * blockSize;
-            ByteBuffer fsObjNodeBuff = Utils.GetBuffer(imagePath, offset, blockSize * 2);
-            BTreeNode node = new BTreeNode(fsObjNodeBuff);
 
-            for (FSKeyValue fskv : node.fsKeyValues) {
-                int type = (int) fskv.key.hdr.obj_type;
-                switch (type) {
-                    case FSObjectKeyFactory.KEY_TYPE_INODE:
-                        inodeRecords.put(fskv.key.hdr.obj_id, fskv);
-                        break;
-                    case FSObjectKeyFactory.KEY_TYPE_EXTENT:
-                        extentRecords.put(fskv.key.hdr.obj_id, fskv);
-                        break;
-                    case FSObjectKeyFactory.KEY_TYPE_DREC:
-                        if (!drecRecords.containsKey(fskv.key.hdr.obj_id)) {
-                            drecRecords.put(fskv.key.hdr.obj_id, new ArrayList<>());
-                        }
-                        drecRecords.get(fskv.key.hdr.obj_id).add(fskv);
-                        break;
-                }
-            }
-        }
         for (Long addr : volumeOMap.parsedOmap.values()) {
             int offset = addr.intValue() * blockSize;
             ByteBuffer fsObjNodeBuff = Utils.GetBuffer(imagePath, offset, blockSize * 2);

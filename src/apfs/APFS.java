@@ -24,8 +24,6 @@ public class APFS {
 
         volumes = getAPFSVolumes();
         APFSVolume volume = volumes.get(0);
-
-
     }
 
 
