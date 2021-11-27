@@ -35,7 +35,7 @@ public class APFS {
         // Parse the Volume Superblock (VSB)
         // Get the VSB physical address by searching for nx_fs_oid in the CSB OMAP
         // nx_fs_oid: contains OIDs for VSBs - see APFS Reference pg. 32
-        int vsbOffset = csbOMap.parsedOmap.get(containerSb.nx_fs_oid).intValue() * blockSize;
+        int vsbOffset = csbOMap.parsedOmap.get(containerSb.nx_fs_oid[0]).intValue() * blockSize;
         ByteBuffer volumeSbBuffer = Utils.GetBuffer(imagePath, vsbOffset, blockSize);
         volumeSb = new APFSVolume(volumeSbBuffer);
 

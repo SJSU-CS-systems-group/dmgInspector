@@ -35,7 +35,7 @@ public class APFSContainer {
     public long nx_reaper_oid;
     public int nx_test_type;
     public int nx_max_file_systems;
-    public long nx_fs_oid; // TODO: this should be an array -- there may be multiple volumes
+    public long[] nx_fs_oid;
 
     public APFSContainer(ByteBuffer buffer) {
         buffer.order(ByteOrder.LITTLE_ENDIAN);
@@ -65,7 +65,11 @@ public class APFSContainer {
         nx_reaper_oid = buffer.getLong();
         nx_test_type = buffer.getInt();
         nx_max_file_systems = buffer.getInt();
-        nx_fs_oid = buffer.getLong();
+
+        nx_fs_oid = new long[nx_max_file_systems];
+        for (int i = 0; i < nx_max_file_systems; i++) {
+            nx_fs_oid[i] = buffer.getLong();
+        }
     }
 
     public static APFSContainer parseContainer(String path) throws IOException {
