@@ -114,6 +114,6 @@ public class DMGKolyBlock {
 
     private void printHexString(int input) {
         signature = String.format("%08X", input);
-        System.out.println(signature);
+//        System.out.println(signature);
     }
 }

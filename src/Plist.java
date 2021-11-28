@@ -35,7 +35,7 @@ public class Plist {
                 String s = base64Data.get(i).replaceAll("[\\n\\s]", "");
                 byte[] mishBytes = Base64.getDecoder().decode(s);
                 MishBlock block = new MishBlock(mishBytes);
-                System.out.println(block);
+//                System.out.println(block);
 
                 // DECOMPRESS
                 MishBlock.BLKXChunkEntry[] blkxChunks = block.getBlkxChunkEntries();
@@ -51,7 +51,7 @@ public class Plist {
                             byte[] decompressedBytes = BLKXBlockDecompress.decompressBLKXBlock(dataForkBuffer, blkxChunks[chunkIndex]);
                             decompressedChunkWriter.write(decompressedBytes);
                         } catch (Exception e) {
-                            System.out.println(e);
+//                            System.out.println(e);
                         }
                     }
                 }
@@ -60,7 +60,7 @@ public class Plist {
             }
 
         } catch (Exception e) {
-            System.out.println(e);
+//            System.out.println(e);
         }
     }
 
@@ -116,7 +116,7 @@ public class Plist {
      * @return decompressed output folder reference
      */
     private File createDecompressedOutputFolder() {
-        File decompressedOutputFolder = new File("./output");
+        File decompressedOutputFolder = new File("./temp");
         if (decompressedOutputFolder.exists()) {
             decompressedOutputFolder.delete();
         }

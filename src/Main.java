@@ -48,7 +48,7 @@ public class Main {
 
         DMGInspector dmgInspector = DMGInspector.parseImage(dmgFile);
 
-        String filepath = "output/4_diskimageApple_APFS4";
+        String filepath = "temp/4_diskimageApple_APFS4";
         APFS apfs = new APFS(filepath);
     }
 }
