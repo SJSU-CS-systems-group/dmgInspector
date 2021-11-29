@@ -78,9 +78,7 @@ class DRECValue implements FSObjectValue {
     public String toString() {
         return "DRECValue{" +
                 "fileId=" + fileId +
-                ", dateAdded=" + Utils.nanoEpochToDateTime(dateAdded) +
-                ", flags=" + flags +
-                ", xfields=" + xfields +
+                "\tdateAdded=" + Utils.nanoEpochToDateTime(dateAdded) +
                 '}';
     }
 }
@@ -131,24 +129,24 @@ class INODEValue implements FSObjectValue {
     @Override
     public String toString() {
         return "INODEValue{" +
-                "parentId=" + parentId +
-                ", privateId=" + privateId +
-                ", createTime=" + Utils.nanoEpochToDateTime(createTime) +
-                ", modTime=" + Utils.nanoEpochToDateTime(modTime) +
-                ", changeTime=" + Utils.nanoEpochToDateTime(changeTime) +
-                ", accessTime=" + Utils.nanoEpochToDateTime(accessTime) +
-                ", internalFlags=" + internalFlags +
-                ", nChildren=" + nChildren +
-                ", nLink=" + nLink +
-                ", cpKeyClasst=" + cpKeyClasst +
-                ", writeGenerationCounter=" + writeGenerationCounter +
-                ", bsdFlags=" + bsdFlags +
-                ", uid_t=" + uid_t +
-                ", gid_t=" + gid_t +
-                ", mode_t=" + mode_t +
-                ", pad1=" + pad1 +
-                ", uncompressedSize=" + uncompressedSize +
-                ", xfields=" + xfields +
+                "Parent Id=" + parentId +
+                "\tPrivate Id=" + privateId +
+                "\tCreate Time=" + Utils.nanoEpochToDateTime(createTime) +
+//                ", modTime=" + Utils.nanoEpochToDateTime(modTime) +
+//                ", changeTime=" + Utils.nanoEpochToDateTime(changeTime) +
+                "\tAccess Time=" + Utils.nanoEpochToDateTime(accessTime) +
+//                ", internalFlags=" + internalFlags +
+                "\tChildren=" + nChildren +
+//                ", nLink=" + nLink +
+//                ", cpKeyClasst=" + cpKeyClasst +
+//                ", writeGenerationCounter=" + writeGenerationCounter +
+//                ", bsdFlags=" + bsdFlags +
+//                ", uid_t=" + uid_t +
+//                ", gid_t=" + gid_t +
+//                ", mode_t=" + mode_t +
+//                ", pad1=" + pad1 +
+                "\tuncompressedSize=" + uncompressedSize +
+//                ", xfields=" + xfields +
                 '}';
     }
 }

@@ -117,7 +117,11 @@ public class Utils {
     public static void extentRangeToFile(String imagePath, String outPath, long physAddr, long len) throws IOException {
 
         Path path = Paths.get(outPath);
-        Files.createDirectories(path.getParent());
+        try{
+            Files.createDirectories(path.getParent());
+        }catch(Exception e){
+
+        }
 
         byte[] extentBytes = new byte[(int) len];
         ByteBuffer buff = GetBuffer(imagePath, (int) physAddr, (int) len);

@@ -157,7 +157,9 @@ public class APFSVolume {
     public void extractFile(int fileId) throws IOException{
         Tuple<String, EXTENTValue> fileToExtract = files.get(fileId);
         EXTENTValue fileExtent = fileToExtract.y;
-        Utils.extentRangeToFile(imagePath, fileToExtract.x, fileExtent.physBlockNum * blockSize, fileExtent.length);
+        File file = new File(fileToExtract.x);
+        String filePath = file.getName();
+        Utils.extentRangeToFile(imagePath, filePath, fileExtent.physBlockNum * blockSize, fileExtent.length);
     }
 
     public void extractAllFiles() throws  IOException{
@@ -274,7 +276,7 @@ public class APFSVolume {
 
     @Override
     public String toString() {
-        return String.format("\nAPFS Volume\t| Name: %s\nBlock Header %s\nMagic: %s\nOMAP OID: %s\nRoot Tree OID: %s\nExtent Ref Tree OID: %s\nSnap Metatree OID: %s\nNumber of Directories: %s\nNumber of Files: %s\nTotal Allocated Blocks: %s\nTotal Free Blocks: %s\nOMap: %s\n", new String(apfs_volname).replaceAll("\0", ""), blockHeader, new String(apfs_magic), apfs_omap_oid, apfs_root_tree_oid, apfs_extentref_tree_oid, apfs_snap_meta_tree_oid, apfs_num_directories, apfs_num_files, apfs_total_blocks_alloced, apfs_total_blocks_freed, volumeOMap.toString());
+        return String.format("APFS Volume\t| Name: %s\nBlock Header %s\nMagic: %s\nOMAP OID: %s\nRoot Tree OID: %s\nExtent Ref Tree OID: %s\nSnap Metatree OID: %s\nNumber of Directories: %s\nNumber of Files: %s\nTotal Allocated Blocks: %s\nTotal Free Blocks: %s\nOMap: %s\n", new String(apfs_volname).replaceAll("\0", ""), blockHeader, new String(apfs_magic), apfs_omap_oid, apfs_root_tree_oid, apfs_extentref_tree_oid, apfs_snap_meta_tree_oid, apfs_num_directories, apfs_num_files, apfs_total_blocks_alloced, apfs_total_blocks_freed, volumeOMap.toString());
     }
 }
 

@@ -1,5 +1,7 @@
 import apfs.APFS;
+import apfs.APFSVolume;
 import picocli.CommandLine;
+import utils.Tuple;
 import utils.Utils;
 import java.io.File;
 import java.io.IOException;
@@ -28,14 +30,19 @@ public class DMGInspectorCLI implements Runnable{
     @CommandLine.Option(names = {"--volumes"}, description = "print all the volumes in the APFS Structure")
     Boolean vols;
 
-    @CommandLine.Option(names = "--extractAll", description = "extract all the content of the file")
+    @CommandLine.Option(names = {"-a", "--all"}, description = "extract all the content of the volumes")
     Boolean extractAll;
 
-    @CommandLine.Option(names = {"-s","--show"}, description = "show all files")
-    Boolean showAll;
+    @CommandLine.Option(names = {"-f","--files"}, description = "show all files")
+    Boolean show;
 
-    @CommandLine.Option(names = "--extractOne", description = "extract one file")
+    @CommandLine.Option(names = "--extract", description = "extract one file")
     Integer fileId;
+
+    @CommandLine.Option(names = "--fs", description = "show all the FS objects")
+    Boolean fsObjs;
+
+
 
     public static void main(String[] args) {
         new CommandLine(new DMGInspectorCLI()).execute(args);
@@ -47,7 +54,18 @@ public class DMGInspectorCLI implements Runnable{
         getTempFiles();
 
         if (vols != null){
-            System.out.println(apfs.volumes);
+            System.out.println("----Volumes----");
+            for (int i=0; i < apfs.volumes.size(); i++){
+                System.out.println(i + ". " + apfs.volumes.get(i));
+            }
+        }
+
+        if (show!= null) {
+            System.out.println("----Files----");
+            for (int i=0; i < apfs.volumes.get(0).files.size(); i++){
+                File file = new File(apfs.volumes.get(0).files.get(i).x);
+                System.out.println(String.format("%d. File: %s \n\tExtent: %s", i, file.getName(), apfs.volumes.get(0).files.get(i).y));
+            }
         }
 
         if (extractAll!= null){
@@ -58,16 +76,30 @@ public class DMGInspectorCLI implements Runnable{
             }
         }
 
-        if (showAll!= null) {
-            System.out.println(apfs.volumes.get(0).files);
-        }
-
         if (fileId!= null) {
             try {
                 apfs.volumes.get(0).extractFile(fileId);
             } catch (IOException e) {
                 throw new CommandLine.ParameterException(new CommandLine(this), "Unable to extract file" + fileId);
             }
+        }
+
+        if (fsObjs!=null){
+            System.out.println("---File System Objects---\n");
+            System.out.println("Inode Records\n");
+            for (int i=0; i < apfs.volumes.get(0).inodeRecords.values().size(); i++){
+                System.out.println(String.format("%d. %s", i, apfs.volumes.get(0).inodeRecords.values().iterator().next().toString()));
+            }
+            System.out.println("\nDREC Records\n");
+            for (int i=0; i < apfs.volumes.get(0).drecRecords.values().size(); i++){
+                System.out.println(String.format("%d. %s", i, apfs.volumes.get(0).drecRecords.values().iterator().next().toString()));
+            }
+
+            System.out.println("\nExtent Records\n");
+            for (int i=0; i < apfs.volumes.get(0).extentRecords.values().size(); i++){
+                System.out.println(String.format("%d. %s", i, apfs.volumes.get(0).extentRecords.values().iterator().next().toString()));
+            }
+
         }
     }
 

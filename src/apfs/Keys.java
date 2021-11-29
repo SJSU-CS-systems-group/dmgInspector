@@ -80,10 +80,9 @@ class FSKeyHeader {
 
     @Override
     public String toString() {
-        return "FSKeyHeader{" +
+        return "FSKeyHeader{ " +
                 "obj_id=" + obj_id +
-                ", obj_type=" + obj_type +
-                '}';
+                "\tobj_type=" + obj_type + "}";
     }
 }
 
@@ -99,7 +98,7 @@ abstract class FSObjectKey {
     @Override
     public String toString() {
         return "FSObjectKey{" +
-                "hdr=" + hdr +
+                hdr +
                 '}';
     }
 }
@@ -149,8 +148,7 @@ class INODEKey extends FSObjectKey {
     @Override
     public String toString() {
         return "INODEKey{" +
-                "hdr=" + hdr +
-                ", test=" + test +
+                hdr +
                 '}';
     }
 }
@@ -167,7 +165,7 @@ class EXTENTKey extends FSObjectKey {
     @Override
     public String toString() {
         return "EXTENTKey{" +
-                "hdr=" + hdr +
+                hdr +
                 "logicalAddr=" + logicalAddr +
                 '}';
     }
