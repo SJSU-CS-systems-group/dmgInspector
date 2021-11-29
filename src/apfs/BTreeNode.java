@@ -123,7 +123,9 @@ public class BTreeNode {
 
     @Override
     public String toString() {
-        return "BTreeNode{" +
+        return String.format("B-Tree Node\nBlock Header %s\nIs Root: %s\tIs Leaf: %s\nLevel: %s\nKey Count: %s\nTable Space Offset: %s\tTable Space Length: %s\nFreespace Offset: %s\tFreespace Length: %s\nKey Freelist Offset: %s\tKey Freelist Length: %s\nKey Value Offset: %s\tKey Value Length: %s\nTable of Contents: %s\nOMAP Keys %s\nOMAP Values %s\nB-Tree Info %s\n", btn_o, btn_flags_is_root, btn_flags_is_leaf, btn_level, btn_nkeys, btn_table_space_off, btn_table_space_len, btn_freespace_off, btn_freespace_len, btn_key_free_list_off, btn_key_free_list_len, btn_val_free_list_off, btn_val_free_list_len, tableOfContents, omapKeys, omapValues, bTreeInfo);
+
+        /*return "BTreeNode{" +
                 "btn_o=" + btn_o +
                 ", btn_flags=" + btn_flags +
                 ", btn_flags_is_fixed_KV_size=" + btn_flags_is_fixed_KV_size +
@@ -147,7 +149,7 @@ public class BTreeNode {
                 ", fsValues=" + fsValues +
                 ", fsKeyValues=" + fsKeyValues +
                 ", \n\tbTreeInfo=" + bTreeInfo +
-                '}';
+                '}';*/
     }
 }
 
@@ -200,13 +202,16 @@ class BTreeInfo {
 
     @Override
     public String toString() {
-        return "BTreeInfo{" +
+        return String.format("\nB-Tree Info Fixed: %s\nLongest Key: %s\nLongest Value: %s\nKey Count: %s\nNode Count: %s\n", bTreeInfoFixed, bt_longest_key, bt_longest_val, bt_key_count, bt_node_count);
+
+
+        /*return "{" +
                 "bTreeInfoFixed=" + bTreeInfoFixed +
                 ", bt_longest_key=" + bt_longest_key +
                 ", bt_longest_val=" + bt_longest_val +
                 ", bt_key_count=" + bt_key_count +
                 ", bt_node_count=" + bt_node_count +
-                '}';
+                '}';*/
     }
 }
 
@@ -226,12 +231,15 @@ class BTreeInfoFixed {
 
     @Override
     public String toString() {
-        return "BTreeInfoFixed{" +
+        return String.format("{Flags: %s, Node Size: %s, Key Size: %s, Value Size: %s}", bt_flags, bt_node_size, bt_key_size, bt_val_size);
+
+
+        /*return "BTreeInfoFixed{" +
                 "bt_flags=" + bt_flags +
                 ", bt_node_size=" + bt_node_size +
                 ", bt_key_size=" + bt_key_size +
                 ", bt_val_size=" + bt_val_size +
-                '}';
+                '}';*/
     }
 }
 

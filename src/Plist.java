@@ -35,7 +35,7 @@ public class Plist {
                 String s = base64Data.get(i).replaceAll("[\\n\\s]", "");
                 byte[] mishBytes = Base64.getDecoder().decode(s);
                 MishBlock block = new MishBlock(mishBytes);
-//                System.out.println(block);
+                //  System.out.println(block);
 
                 // DECOMPRESS
                 MishBlock.BLKXChunkEntry[] blkxChunks = block.getBlkxChunkEntries();

@@ -8,8 +8,8 @@ public class BLKXBlockDecompress {
 
     public static byte[] decompressBLKXBlock(ByteBuffer dataForkBuffer, MishBlock.BLKXChunkEntry block) throws Exception {
         // Don't decompress if the bytes aren't zlib compressed.
-        if (block.EntryType != 0x80000005) // hex code for zlib compression
-            throw new Exception("Non-zLib compressed bytes with type " + String.format("%08X", block.EntryType) + ". Skipping decompression.");
+        //if (block.EntryType != 0x80000005) // hex code for zlib compression
+        //    throw new Exception("Non-zLib compressed bytes with type " + String.format("%08X", block.EntryType) + ". Skipping decompression.");
 
         ByteBuffer compressedChunkBytesBuffer = dataForkBuffer.slice((int) block.CompressedOffset, (int) block.CompressedLength);
         byte[] compressedBytes = new byte[compressedChunkBytesBuffer.remaining()];

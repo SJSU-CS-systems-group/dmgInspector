@@ -89,7 +89,10 @@ public class APFSContainer {
 
     @Override
     public String toString() {
-        return "APFSSuperBlock{" +
+
+        return String.format("APFS Super Block\nBlock Header %s\nMagic: %s\nBlock Size: %s\nBlock Count: %s\nSpaceman OID: %s\nOMAP OID: %s\nReaper OID: %s\n", blockHeader, new String(magic), nx_block_size, nx_block_count, nx_spaceman_oid, nx_omap_oid, nx_reaper_oid);
+
+        /*return "APFSSuperBlock{" +
                 "blockHeader=" + blockHeader +
                 ", magic=" + new String(magic) +
                 ", nx_block_size=" + nx_block_size +
@@ -116,6 +119,6 @@ public class APFSContainer {
                 ", nx_test_type=" + nx_test_type +
                 ", nx_max_file_systems=" + nx_max_file_systems +
                 ", nx_fs_oid=" + nx_fs_oid +
-                '}';
+                '}';*/
     }
 }

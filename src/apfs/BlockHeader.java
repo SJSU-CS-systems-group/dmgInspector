@@ -23,13 +23,17 @@ public class BlockHeader {
 
     @Override
     public String toString () {
-        return "apfs.BlockHeader{" +
+
+        return String.format("{Checksum: %s, Block ID: %s, Version: %s, Block Type: %s, Flags: %s, Padding: %s}", Long.toUnsignedString(checksum), block_id, version, block_type, Short.toUnsignedInt(flags), padding);
+
+
+        /*return "apfs.BlockHeader{" +
                 "checksum=" + Long.toUnsignedString(checksum) +
                 ", block_id=" + block_id +
                 ", version=" + version +
                 ", block_type=" + block_type +
                 ", flags=" + Short.toUnsignedInt(flags) +
                 ", padding=" + padding +
-                '}';
+                '}';*/
     }
 }

@@ -172,11 +172,12 @@ class EXTENTValue implements FSObjectValue {
 
     @Override
     public String toString() {
-        return "EXTENTValue{" +
+        return String.format("{Length: %s, Physical Block Number: %s}", length, physBlockNum);
+        /*return "EXTENTValue{" +
                 "lenAndKind=" + lenAndKind +
                 ", length=" + length +
                 ", physBlockNum=" + physBlockNum +
                 ", cryptoId=" + cryptoId +
-                '}';
+                '}';*/
     }
 }
