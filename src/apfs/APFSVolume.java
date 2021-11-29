@@ -9,6 +9,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -149,7 +150,7 @@ public class APFSVolume {
 
     public void printFiles() {
         for(int c = 0; c < files.size(); c++) {
-            System.out.printf("File Path: %-45sExtent Value: %s\n", files.get(c).x, files.get(c).y);
+            // System.out.printf("File Path: %-45sExtent Value: %s\n", files.get(c).x, files.get(c).y);
         }
     }
 
@@ -273,58 +274,7 @@ public class APFSVolume {
 
     @Override
     public String toString() {
-        return "APFSVolume{" +
-                "blockHeader=" + blockHeader +
-                ", apfs_magic=" + new String(apfs_magic) +
-                ", apfs_fs_index=" + apfs_fs_index +
-                ", apfs_features=" + apfs_features +
-                ", apfs_readonly_compatible_features=" + apfs_readonly_compatible_features +
-                ", apfs_incompatible_features=" + apfs_incompatible_features +
-                ", apfs_unmount_time=" + apfs_unmount_time +
-                ", apfs_fs_reserve_block_count=" + apfs_fs_reserve_block_count +
-                ", apfs_fs_quota_block_count=" + apfs_fs_quota_block_count +
-                ", apfs_fs_alloc_count=" + apfs_fs_alloc_count +
-                ", wrapped_crypto_state_t_major_version=" + wrapped_crypto_state_t_major_version +
-                ", wrapped_crypto_state_t_minor_version=" + wrapped_crypto_state_t_minor_version +
-                ", wrapped_crypto_state_t_cpflags=" + wrapped_crypto_state_t_cpflags +
-                ", wrapped_crypto_state_t_persistent_class=" + wrapped_crypto_state_t_persistent_class +
-                ", wrapped_crypto_state_t_key_os_version=" + wrapped_crypto_state_t_key_os_version +
-                ", wrapped_crypto_state_t_key_revision=" + wrapped_crypto_state_t_key_revision +
-                ", wrapped_crypto_state_t_key_len=" + wrapped_crypto_state_t_key_len +
-                ", apfs_root_tree_oid_type=" + apfs_root_tree_oid_type +
-                ", apfs_extentref_tree_oid_type=" + apfs_extentref_tree_oid_type +
-                ", apfs_snap_meta_tree_oid_type=" + apfs_snap_meta_tree_oid_type +
-                ", apfs_omap_oid=" + apfs_omap_oid +
-                ", apfs_root_tree_oid=" + apfs_root_tree_oid +
-                ", apfs_extentref_tree_oid=" + apfs_extentref_tree_oid +
-                ", apfs_snap_meta_tree_oid=" + apfs_snap_meta_tree_oid +
-                ", apfs_revert_to_xid=" + apfs_revert_to_xid +
-                ", apfs_revert_to_sblock_oid=" + apfs_revert_to_sblock_oid +
-                ", apfs_next_obj_id=" + apfs_next_obj_id +
-                ", apfs_num_files=" + apfs_num_files +
-                ", apfs_num_directories=" + apfs_num_directories +
-                ", apfs_num_symlinks=" + apfs_num_symlinks +
-                ", apfs_num_other_fsobjects=" + apfs_num_other_fsobjects +
-                ", apfs_num_snapshots=" + apfs_num_snapshots +
-                ", apfs_total_blocks_alloced=" + apfs_total_blocks_alloced +
-                ", apfs_total_blocks_freed=" + apfs_total_blocks_freed +
-                ", apfs_vol_uuid=" + Arrays.toString(apfs_vol_uuid) +
-                ", apfs_last_mod_time=" + apfs_last_mod_time +
-                ", apfs_fs_flags=" + apfs_fs_flags +
-                ", apfs_modified_by_t_formatted_by_id=" + Arrays.toString(apfs_modified_by_t_formatted_by_id) +
-                ", apfs_modified_by_t_formatted_by_timestamp=" + apfs_modified_by_t_formatted_by_timestamp +
-                ", apfs_modified_by_t_formatted_by_last_xid=" + apfs_modified_by_t_formatted_by_last_xid +
-                ", apfs_modified_by_t_modified_by_id=" + Arrays.toString(apfs_modified_by_t_modified_by_id) +
-                ", apfs_modified_by_t_modified_by_timestamp=" + apfs_modified_by_t_modified_by_timestamp +
-                ", apfs_modified_by_t_modified_by_last_xid=" + apfs_modified_by_t_modified_by_last_xid +
-                ", apfs_modified_by_t_modified_by_1_7=" + Arrays.toString(apfs_modified_by_t_modified_by_1_7) +
-                ", apfs_volname=" + Arrays.toString(apfs_volname) +
-                ", apfs_next_doc_id=" + apfs_next_doc_id +
-                ", apfs_role=" + apfs_role +
-                ", apfs_reserved=" + apfs_reserved +
-                ", apfs_root_to_xid=" + apfs_root_to_xid +
-                ", apfs_er_state_oid=" + apfs_er_state_oid +
-                '}';
+        return String.format("\nAPFS Volume\t| Name: %s\nBlock Header %s\nMagic: %s\nOMAP OID: %s\nRoot Tree OID: %s\nExtent Ref Tree OID: %s\nSnap Metatree OID: %s\nNumber of Directories: %s\nNumber of Files: %s\nTotal Allocated Blocks: %s\nTotal Free Blocks: %s\nOMap: %s\n", new String(apfs_volname).replaceAll("\0", ""), blockHeader, new String(apfs_magic), apfs_omap_oid, apfs_root_tree_oid, apfs_extentref_tree_oid, apfs_snap_meta_tree_oid, apfs_num_directories, apfs_num_files, apfs_total_blocks_alloced, apfs_total_blocks_freed, volumeOMap.toString());
     }
 }
 

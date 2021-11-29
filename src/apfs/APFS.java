@@ -20,11 +20,12 @@ public class APFS {
 
         // Parse the Container Superblock (CSB)
         containerSb = APFSContainer.parseContainer(imagePath);
-        System.out.println(containerSb.toString());
+        // System.out.println(containerSb.toString());
         blockSize = containerSb.nx_block_size;
 
         volumes = getAPFSVolumes();
         APFSVolume volume = volumes.get(0);
+        // System.out.println(volume);
     }
 
 

@@ -89,36 +89,6 @@ public class APFSContainer {
 
     @Override
     public String toString() {
-
         return String.format("APFS Super Block\nBlock Header %s\nMagic: %s\nBlock Size: %s\nBlock Count: %s\nSpaceman OID: %s\nOMAP OID: %s\nReaper OID: %s\n", blockHeader, new String(magic), nx_block_size, nx_block_count, nx_spaceman_oid, nx_omap_oid, nx_reaper_oid);
-
-        /*return "APFSSuperBlock{" +
-                "blockHeader=" + blockHeader +
-                ", magic=" + new String(magic) +
-                ", nx_block_size=" + nx_block_size +
-                ", nx_block_count=" + nx_block_count +
-                ", nx_features=" + nx_features +
-                ", nx_read_only_compatible_features=" + nx_read_only_compatible_features +
-                ", nx_incompatable_features=" + nx_incompatable_features +
-                ", nx_uuid=" + Arrays.toString(nx_uuid) +
-                ", nx_next_oid=" + nx_next_oid +
-                ", nx_next_xid=" + nx_next_xid +
-                ", nx_xp_desc_blocks=" + nx_xp_desc_blocks +
-                ", nx_xp_data_blocks=" + nx_xp_data_blocks +
-                ", nx_xp_desc_base=" + nx_xp_desc_base +
-                ", nx_xp_data_base=" + nx_xp_data_base +
-                ", nx_xp_desc_next=" + nx_xp_desc_next +
-                ", nx_xp_data_next=" + nx_xp_data_next +
-                ", nx_xp_desc_index=" + nx_xp_desc_index +
-                ", nx_xp_desc=" + nx_xp_desc +
-                ", nx_xp_data_index=" + nx_xp_data_index +
-                ", nx_xp_data=" + nx_xp_data +
-                ", nx_spaceman_oid=" + nx_spaceman_oid +
-                ", nx_omap_oid=" + nx_omap_oid +
-                ", nx_reaper_oid=" + nx_reaper_oid +
-                ", nx_test_type=" + nx_test_type +
-                ", nx_max_file_systems=" + nx_max_file_systems +
-                ", nx_fs_oid=" + nx_fs_oid +
-                '}';*/
     }
 }
