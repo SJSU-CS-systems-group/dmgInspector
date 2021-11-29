@@ -9,6 +9,7 @@ import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
 import java.nio.charset.Charset;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -318,7 +319,7 @@ public class APFSVolume {
                 ", apfs_modified_by_t_modified_by_timestamp=" + apfs_modified_by_t_modified_by_timestamp +
                 ", apfs_modified_by_t_modified_by_last_xid=" + apfs_modified_by_t_modified_by_last_xid +
                 ", apfs_modified_by_t_modified_by_1_7=" + Arrays.toString(apfs_modified_by_t_modified_by_1_7) +
-                ", apfs_volname=" + Arrays.toString(apfs_volname) +
+                ", apfs_volname=" + new String(apfs_volname, StandardCharsets.UTF_8).replaceAll("\0", "") +
                 ", apfs_next_doc_id=" + apfs_next_doc_id +
                 ", apfs_role=" + apfs_role +
                 ", apfs_reserved=" + apfs_reserved +
