@@ -58,7 +58,7 @@ public class OMap {
         nodes.add(rootNode);
         while (nodes.size() > 0) {
             BTreeNode n = nodes.removeFirst();
-            System.out.println(n);
+            // System.out.println(n);
             if (n.btn_flags_is_leaf) {
                 for (int i = 0; i < n.omapKeys.size(); i++) {
                     OMAPKey key = n.omapKeys.get(i);
@@ -80,17 +80,6 @@ public class OMap {
 
     @Override
     public String toString() {
-        return "OMap{" +
-                "om_o=" + om_o +
-                ", om_flags=" + om_flags +
-                ", om_snap_count=" + om_snap_count +
-                ", om_tree_type=" + om_tree_type +
-                ", om_snapshot_tree_type=" + om_snapshot_tree_type +
-                ", om_tree_oid=" + om_tree_oid +
-                ", om_snapshot_tree_oid=" + om_snapshot_tree_oid +
-                ", om_most_recent_snap=" + om_most_recent_snap +
-                ", om_pending_revert_min=" + om_pending_revert_min +
-                ", \n\tParsed OMap=" + parsedOmap.toString() +
-                '}';
+        return String.format("\n\tOMAP Header %s\n\tFlags: %s, Snap Count: %s, Tree type: %s, Snapshot Tree Type: %s, Tree OID: %s, Snapshot Tree OID: %s, Most Recent Snap: %s\n\tParsed OMAP: %s", om_o, om_flags, om_snap_count, om_tree_type, om_snapshot_tree_type, om_tree_oid, om_snapshot_tree_oid, om_most_recent_snap, parsedOmap.toString());
     }
 }
