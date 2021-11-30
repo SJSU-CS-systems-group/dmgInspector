@@ -144,14 +144,6 @@ public class APFSVolume {
         apfs_er_state_oid = buffer.getLong();
         volumeOMap = getVolumeOMap();
         files = getFiles();
-        printFiles();
-        extractAllFiles();
-    }
-
-    public void printFiles() {
-        for(int c = 0; c < files.size(); c++) {
-            // System.out.printf("File Path: %-45sExtent Value: %s\n", files.get(c).x, files.get(c).y);
-        }
     }
 
     public void extractFile(int fileId) throws IOException{
