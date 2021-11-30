@@ -113,6 +113,8 @@ public class DMGInspectorCLI implements Runnable {
             }
 
         }
+
+        Utils.deleteFolder(new File("temp"));
     }
 
     private void getTempFiles() {
