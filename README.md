@@ -1,26 +1,21 @@
-
-
 # DMGInspector CLI
 
-DMGInspector is a Java-based command line interface for inspecting data structures and extracting files from a DMG file’s underlying APFS image. 
-
+DMGInspector is a Java-based command line interface for inspecting data structures and extracting files from a DMG
+file’s underlying APFS image.
 
 ## I. Key Features
-
-
 
 1. View volume info
 2. View file system object info
 3. Extract a specific file
 4. Extract all files
-
+5. View DMG partitions
 
 ## II. Usage
 
 ```
 dmgi [-hsV] [--extractAll] [--volumes] [--extractOne=<fileId>] -p=<path>
 ```
-
 
 <table>
   <tr>
@@ -56,9 +51,21 @@ dmgi [-hsV] [--extractAll] [--volumes] [--extractOne=<fileId>] -p=<path>
    </td>
   </tr>
   <tr>
-   <td><code>--extractOne=&lt;fileId></code>
+   <td><code>--extract=&lt;fileId></code>
    </td>
    <td>Extract one file
+   </td>
+  </tr>
+  <tr>
+   <td><code>--objects</code>
+   </td>
+   <td>Show all the FS Objects in the APFS Volume
+   </td>
+  </tr>  
+<tr>
+   <td><code>--partitions</code>
+   </td>
+   <td>Show the partitions of the DMG
    </td>
   </tr>
   <tr>
@@ -69,19 +76,13 @@ dmgi [-hsV] [--extractAll] [--volumes] [--extractOne=<fileId>] -p=<path>
   </tr>
 </table>
 
-
-
-## 
-
+##    
 
 ## III. How It Works
-
 
 ### A. DMG File Parsing
 
 How it works
-
-
 
 1. Read an inputted DMG file
 2. Parse plist XML by looking for the “koly” trailer
@@ -176,18 +177,15 @@ These are used to parse the DMG’s Plist.
   </tr>
 </table>
 
-
-
 ### B. APFS Image Parsing
 
 How it works
 
-
-
 1. Read the APFS image file outputted by the DMG parser
 2. Parse the Container Superblock (CSB)
 3. Parse Volumes associated with the CSB’s field of Volume Object Identifiers
-4. Starting from a volume’s root “DREC” directory record, parse all child directory and file info from their respective DREC, EXTENT, and INODE records.
+4. Starting from a volume’s root “DREC” directory record, parse all child directory and file info from their respective
+   DREC, EXTENT, and INODE records.
 
 Implementation
 
@@ -262,12 +260,10 @@ The APFSVolume class uses these structures to parse keys and values based on a v
   </tr>
 </table>
 
-
-
 ## IV. Reference
 
-
-
 1. DMG Format: [DeMystifyinG the DMG file format (newosxbook.com)](http://newosxbook.com/DMG.html)
-2. Official APFS Reference: [Apple File System Reference](https://developer.apple.com/support/downloads/Apple-File-System-Reference.pdf)
-3. APFS Cheat Sheet: [FOR518_APFS_CheatSheet_012020.pdf (contentstack.io)](https://assets.contentstack.io/v3/assets/blt36c2e63521272fdc/blt61c336e02577e733/5eb0940e248a28605479ccf0/FOR518_APFS_CheatSheet_012020.pdf)
+2. Official APFS
+   Reference: [Apple File System Reference](https://developer.apple.com/support/downloads/Apple-File-System-Reference.pdf)
+3. APFS Cheat
+   Sheet: [FOR518_APFS_CheatSheet_012020.pdf (contentstack.io)](https://assets.contentstack.io/v3/assets/blt36c2e63521272fdc/blt61c336e02577e733/5eb0940e248a28605479ccf0/FOR518_APFS_CheatSheet_012020.pdf)
