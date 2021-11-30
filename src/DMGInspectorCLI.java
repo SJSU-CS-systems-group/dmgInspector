@@ -97,9 +97,13 @@ public class DMGInspectorCLI implements Runnable {
             }
 
             ArrayList drecRecords = new ArrayList(apfs.volumes.get(0).drecRecords.values());
-            System.out.println("\nDREC Records\n");
+            System.out.println("\nDREC Records - Similar objects grouped together\n");
             for (int i = 0; i < drecRecords.size(); i++) {
-                System.out.println(String.format("%d. %s", i, drecRecords.get(i)));
+                ArrayList records = (ArrayList) drecRecords.get(i);
+                for (int j = 0; j < records.size(); j++) {
+                    System.out.println(String.format("%d-%d. %s",i, j, records.get(j)));
+                }
+                System.out.println("\n");
             }
 
             ArrayList extentRecords = new ArrayList(apfs.volumes.get(0).extentRecords.values());

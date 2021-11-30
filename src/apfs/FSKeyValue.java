@@ -11,8 +11,7 @@ public class FSKeyValue {
 
     @Override
     public String toString() {
-        return "FSObject" +
-                "\n\tkey=" + key +
-                "\n\tvalue=" + value;
+        return  "\tkey=" + key +
+                "\n\t\tvalue=" + value + "\n";
     }
 }

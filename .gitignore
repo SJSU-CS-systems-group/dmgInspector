@@ -9,3 +9,6 @@ decompressed.txt
 decompressed*
 /output/
 temp/
+classes/
+src/images/
+resources/
