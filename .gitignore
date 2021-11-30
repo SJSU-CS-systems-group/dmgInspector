@@ -1,7 +1,7 @@
 .idea
 MBR_Partition_Test.iml
 out
-src/images/*
+images/*
 bin/
 .DS_Store
 partition-inspector.iml

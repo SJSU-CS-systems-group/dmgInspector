@@ -4,7 +4,7 @@
 
 DMGInspector is a Java-based command line interface for inspecting data structures and extracting files from a DMG file’s underlying APFS image. 
 
----
+
 ## I. Key Features
 
 
@@ -13,7 +13,7 @@ DMGInspector is a Java-based command line interface for inspecting data structur
 2. View file system object info
 3. Extract a specific file
 4. Extract all files
----
+
 
 ## II. Usage
 
@@ -69,14 +69,17 @@ dmgi [-hsV] [--extractAll] [--volumes] [--extractOne=<fileId>] -p=<path>
   </tr>
 </table>
 
----
+
+
+## 
+
 
 ## III. How It Works
 
 
 ### A. DMG File Parsing
 
-#### How it works
+How it works
 
 
 
@@ -87,7 +90,7 @@ dmgi [-hsV] [--extractAll] [--volumes] [--extractOne=<fileId>] -p=<path>
 5. Decompress compressed data fork bytes specified by blkx block offset & length values
 6. Save decompressed bytes to files. File names are based on their name in the plist (e.g. `diskimageApple_APFS4`)
 
-#### Implementation
+Implementation
 
 
 <table>
@@ -177,13 +180,18 @@ These are used to parse the DMG’s Plist.
 
 ### B. APFS Image Parsing
 
-#### How it works
+How it works
+
+
+
 1. Read the APFS image file outputted by the DMG parser
 2. Parse the Container Superblock (CSB)
 3. Parse Volumes associated with the CSB’s field of Volume Object Identifiers
 4. Starting from a volume’s root “DREC” directory record, parse all child directory and file info from their respective DREC, EXTENT, and INODE records.
 
-#### Implementation
+Implementation
+
+
 <table>
   <tr>
    <td><strong>CLASS</strong>
@@ -255,8 +263,11 @@ The APFSVolume class uses these structures to parse keys and values based on a v
 </table>
 
 
----
+
 ## IV. Reference
+
+
+
 1. DMG Format: [DeMystifyinG the DMG file format (newosxbook.com)](http://newosxbook.com/DMG.html)
 2. Official APFS Reference: [Apple File System Reference](https://developer.apple.com/support/downloads/Apple-File-System-Reference.pdf)
 3. APFS Cheat Sheet: [FOR518_APFS_CheatSheet_012020.pdf (contentstack.io)](https://assets.contentstack.io/v3/assets/blt36c2e63521272fdc/blt61c336e02577e733/5eb0940e248a28605479ccf0/FOR518_APFS_CheatSheet_012020.pdf)

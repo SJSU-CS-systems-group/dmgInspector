@@ -3,24 +3,26 @@ import apfs.APFSVolume;
 import picocli.CommandLine;
 import utils.Tuple;
 import utils.Utils;
+
 import java.io.File;
 import java.io.IOException;
+import java.util.ArrayList;
 
 
 // TODO: Final project
-    // dmginspector CLI TOOL --
-    // 1. Dump volume info -- dmgi volumes -> getAPFSVolumes()
-    // 2. Dump volume file objects -- dmgi fsobj <?volume> -> getFSObjects(index): ArrayList<FSKeyValue>
-    // 3. Dump file system structure -- dmgi files -> getFSStructure(index): ArrayList<FSObject>
-    // 4. Extract file(s) -- dmgi extract <?specific_file>
-    //  TODO: temp folder for extracted DMG Files?
+// dmginspector CLI TOOL --
+// 1. Dump volume info -- dmgi volumes -> getAPFSVolumes()
+// 2. Dump volume file objects -- dmgi fsobj <?volume> -> getFSObjects(index): ArrayList<FSKeyValue>
+// 3. Dump file system structure -- dmgi files -> getFSStructure(index): ArrayList<FSObject>
+// 4. Extract file(s) -- dmgi extract <?specific_file>
+//  TODO: temp folder for extracted DMG Files?
 
 
-@CommandLine.Command(name="dmgi",
-        description="DMGI Tool that can read and extract dmg files",
-        version="1.0.0",
+@CommandLine.Command(name = "dmgi",
+        description = "DMGI Tool that can read and extract dmg files",
+        version = "1.0.0",
         mixinStandardHelpOptions = true)
-public class DMGInspectorCLI implements Runnable{
+public class DMGInspectorCLI implements Runnable {
 
     APFS apfs;
 
@@ -33,7 +35,7 @@ public class DMGInspectorCLI implements Runnable{
     @CommandLine.Option(names = {"-a", "--all"}, description = "extract all the content of the volumes")
     Boolean extractAll;
 
-    @CommandLine.Option(names = {"-f","--files"}, description = "show all files")
+    @CommandLine.Option(names = {"-f", "--files"}, description = "show all files")
     Boolean show;
 
     @CommandLine.Option(names = "--extract", description = "extract one file")
@@ -43,40 +45,39 @@ public class DMGInspectorCLI implements Runnable{
     Boolean fsObjs;
 
 
-
     public static void main(String[] args) {
         new CommandLine(new DMGInspectorCLI()).execute(args);
     }
 
     @Override
-    public void run(){
+    public void run() {
 
         getTempFiles();
 
-        if (vols != null){
+        if (vols != null) {
             System.out.println("----Volumes----");
-            for (int i=0; i < apfs.volumes.size(); i++){
+            for (int i = 0; i < apfs.volumes.size(); i++) {
                 System.out.println(i + ". " + apfs.volumes.get(i));
             }
         }
 
-        if (show!= null) {
+        if (show != null) {
             System.out.println("----Files----");
-            for (int i=0; i < apfs.volumes.get(0).files.size(); i++){
+            for (int i = 0; i < apfs.volumes.get(0).files.size(); i++) {
                 File file = new File(apfs.volumes.get(0).files.get(i).x);
                 System.out.println(String.format("%d. File: %s \n\tExtent: %s", i, file.getName(), apfs.volumes.get(0).files.get(i).y));
             }
         }
 
-        if (extractAll!= null){
-            try{
+        if (extractAll != null) {
+            try {
                 apfs.volumes.get(0).extractAllFiles();
-            }catch (IOException e){
+            } catch (IOException e) {
                 throw new CommandLine.ParameterException(new CommandLine(this), "Unable to extract all files");
             }
         }
 
-        if (fileId!= null) {
+        if (fileId != null) {
             try {
                 apfs.volumes.get(0).extractFile(fileId);
             } catch (IOException e) {
@@ -84,27 +85,34 @@ public class DMGInspectorCLI implements Runnable{
             }
         }
 
-        if (fsObjs!=null){
+        if (fsObjs != null) {
             System.out.println("---File System Objects---\n");
             System.out.println("Inode Records\n");
-            for (int i=0; i < apfs.volumes.get(0).inodeRecords.values().size(); i++){
-                System.out.println(String.format("%d. %s", i, apfs.volumes.get(0).inodeRecords.values().iterator().next().toString()));
-            }
-            System.out.println("\nDREC Records\n");
-            for (int i=0; i < apfs.volumes.get(0).drecRecords.values().size(); i++){
-                System.out.println(String.format("%d. %s", i, apfs.volumes.get(0).drecRecords.values().iterator().next().toString()));
+
+            // TODO: Print records for a specific volume
+            // We're only printing the first volume's info right now since our test images only have 1 volume
+            ArrayList inodeRecords = new ArrayList(apfs.volumes.get(0).inodeRecords.values());
+            for (int i = 0; i < inodeRecords.size(); i++) {
+                System.out.println(String.format("%d. %s", i, inodeRecords.get(i)));
             }
 
+            ArrayList drecRecords = new ArrayList(apfs.volumes.get(0).drecRecords.values());
+            System.out.println("\nDREC Records\n");
+            for (int i = 0; i < drecRecords.size(); i++) {
+                System.out.println(String.format("%d. %s", i, drecRecords.get(i)));
+            }
+
+            ArrayList extentRecords = new ArrayList(apfs.volumes.get(0).extentRecords.values());
             System.out.println("\nExtent Records\n");
-            for (int i=0; i < apfs.volumes.get(0).extentRecords.values().size(); i++){
-                System.out.println(String.format("%d. %s", i, apfs.volumes.get(0).extentRecords.values().iterator().next().toString()));
+            for (int i = 0; i < extentRecords.size(); i++) {
+                System.out.println(String.format("%d. %s", i, extentRecords.get(i)));
             }
 
         }
     }
 
     private void getTempFiles() {
-        try{
+        try {
             File outputDir = new File("temp/");
             if (outputDir.exists()) {
                 Utils.deleteFolder(outputDir);
@@ -112,7 +120,7 @@ public class DMGInspectorCLI implements Runnable{
             outputDir.mkdir();
             DMGInspector dmgInspector = DMGInspector.parseImage(this.path);
             apfs = new APFS("temp/4_diskimageApple_APFS4");
-        }catch (IOException e){
+        } catch (IOException e) {
             throw new CommandLine.ParameterException(new CommandLine(this), path + " is invalid path");
         }
     }
