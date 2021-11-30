@@ -1,7 +1,6 @@
 package dmg;
 
 import utils.Utils;
-
 import java.io.FileInputStream;
 import java.io.IOException;
 import java.nio.ByteBuffer;
@@ -10,7 +9,7 @@ public class DMGInspector {
     private static final int KOLY_BLOCK_SIZE = 512;
     private static byte[] kolyBlockBytes = new byte[KOLY_BLOCK_SIZE];
     private static DMGKolyBlock dmgKolyBlock;
-    private static Plist plist;
+    public static Plist plist;
 
     public DMGInspector(String dmgFile) throws IOException {
         kolyBlockBytes = getKolyBlockBytes(dmgFile);
@@ -40,6 +39,3 @@ public class DMGInspector {
         return new DMGInspector(imgPath);
     }
 }
-
-
-

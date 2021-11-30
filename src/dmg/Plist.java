@@ -9,14 +9,20 @@ import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.ParserConfigurationException;
 import java.io.*;
+import java.lang.reflect.Array;
 import java.nio.ByteBuffer;
+import java.nio.charset.StandardCharsets;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Base64;
 import java.util.List;
 
 public class Plist {
 
+    public ArrayList<String> fileNames = new ArrayList<>();
+
     public Plist(ByteBuffer pListBuffer, ByteBuffer dataForkBuffer) {
+
         try {
             Document d = getPlistXMLDocument(pListBuffer);
 
@@ -31,11 +37,13 @@ public class Plist {
                 String s = base64Data.get(i).replaceAll("[\\n\\s]", "");
                 byte[] mishBytes = Base64.getDecoder().decode(s);
                 MishBlock block = new MishBlock(mishBytes);
+                //  System.out.println(block);
 
                 // DECOMPRESS
                 MishBlock.BLKXChunkEntry[] blkxChunks = block.getBlkxChunkEntries();
 
                 String fileName = i + "_" + cfNames.get(i).replaceAll("[\\(\\):\\s]", "");
+                fileNames.add(fileName);
                 String pathName = decompressedOutputFolder.getCanonicalPath() + File.separator + fileName;
                 File decompressedMishFile = new File(pathName);
                 FileOutputStream decompressedChunkWriter = new FileOutputStream(decompressedMishFile.getAbsolutePath());
@@ -46,7 +54,6 @@ public class Plist {
                             byte[] decompressedBytes = BLKXBlockDecompress.decompressBLKXBlock(dataForkBuffer, blkxChunks[chunkIndex]);
                             decompressedChunkWriter.write(decompressedBytes);
                         } catch (Exception e) {
-//                            System.out.println(e);
                         }
                     }
                 }
@@ -56,6 +63,10 @@ public class Plist {
 
         } catch (Exception e) {
         }
+    }
+
+    public ArrayList<String> getFilenames(){
+        return fileNames;
     }
 
     /**
@@ -116,13 +127,5 @@ public class Plist {
         }
         decompressedOutputFolder.mkdir();
         return decompressedOutputFolder;
-    }
-
-    @Override
-    public String toString() {
-        String output = "";
-//        output += "Version: " + Version + "\n";
-//        output += "HeaderSize: " + HeaderSize + "\n";
-        return output;
     }
 }

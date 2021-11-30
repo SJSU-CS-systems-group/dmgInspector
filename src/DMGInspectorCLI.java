@@ -1,10 +1,13 @@
 import apfs.APFS;
+import apfs.kv.values.EXTENTValue;
 import dmg.DMGInspector;
+import apfs.APFSVolume;
 import picocli.CommandLine;
 import utils.Utils;
 
 import java.io.File;
 import java.io.IOException;
+import java.lang.reflect.Array;
 import java.util.ArrayList;
 
 
@@ -24,6 +27,7 @@ import java.util.ArrayList;
 public class DMGInspectorCLI implements Runnable {
 
     APFS apfs;
+    DMGInspector dmgInspector;
 
     @CommandLine.Option(names = {"-p", "--path"}, required = true, description = "path of the dmg file")
     String path;
@@ -31,17 +35,20 @@ public class DMGInspectorCLI implements Runnable {
     @CommandLine.Option(names = {"--volumes"}, description = "print all the volumes in the APFS Structure")
     Boolean vols;
 
-    @CommandLine.Option(names = {"-a", "--all"}, description = "extract all the content of the volumes")
+    @CommandLine.Option(names = {"--extractAll"}, description = "Extract all the files in the Volume")
     Boolean extractAll;
 
-    @CommandLine.Option(names = {"-f", "--files"}, description = "show all files")
+    @CommandLine.Option(names = {"--files"}, description = "Show all files")
     Boolean show;
 
-    @CommandLine.Option(names = "--extract", description = "extract one file")
+    @CommandLine.Option(names = "--extract", description = "Extract one file")
     Integer fileId;
 
-    @CommandLine.Option(names = "--fs", description = "show all the FS objects")
+    @CommandLine.Option(names = "--objects", description = "Show all the FS Objects in APFS Volume")
     Boolean fsObjs;
+
+    @CommandLine.Option(names = "--partitions", description = "Show the partitions of the DMG Image")
+    Boolean partitions;
 
 
     public static void main(String[] args) {
@@ -54,7 +61,7 @@ public class DMGInspectorCLI implements Runnable {
         getTempFiles();
 
         if (vols != null) {
-            System.out.println("----Volumes----");
+            System.out.println("\n----Volumes----\n");
             for (int i = 0; i < apfs.volumes.size(); i++) {
                 System.out.println(i + ". " + apfs.volumes.get(i));
             }
@@ -64,7 +71,8 @@ public class DMGInspectorCLI implements Runnable {
             System.out.println("----Files----");
             for (int i = 0; i < apfs.volumes.get(0).files.size(); i++) {
                 File file = new File(apfs.volumes.get(0).files.get(i).x);
-                System.out.println(String.format("%d. File: %s \n\tExtent: %s", i, file.getName(), apfs.volumes.get(0).files.get(i).y));
+                EXTENTValue extentValue = apfs.volumes.get(0).files.get(i).y;
+                System.out.println(String.format("%d. File: %s \tSize: %s\n\tExtent: %s", i, file.getName(), Utils.humanReadableByteCountSI(extentValue.length), extentValue));
             }
         }
 
@@ -113,6 +121,15 @@ public class DMGInspectorCLI implements Runnable {
 
         }
 
+        if (partitions!= null){
+            System.out.println("\n---Partitons in " + path + "---\n");
+            ArrayList fileNames = dmgInspector.plist.fileNames;
+            for (int i = 0; i < fileNames.size(); i++) {
+                String fileName = (String) fileNames.get(i);
+                System.out.println(String.format("%d. %s", i, fileName.substring(2)));
+            }
+        }
+
         Utils.deleteFolder(new File("temp"));
     }
 
@@ -123,7 +140,7 @@ public class DMGInspectorCLI implements Runnable {
                 Utils.deleteFolder(outputDir);
             }
             outputDir.mkdir();
-            DMGInspector dmgInspector = DMGInspector.parseImage(this.path);
+            dmgInspector = DMGInspector.parseImage(this.path);
             apfs = new APFS("temp/4_diskimageApple_APFS4");
         } catch (IOException e) {
             throw new CommandLine.ParameterException(new CommandLine(this), path + " is invalid path");
