@@ -1,4 +1,8 @@
-package apfs;
+package apfs.kv;
+
+
+import apfs.kv.keys.FSObjectKey;
+import apfs.kv.values.FSObjectValue;
 
 public class FSKeyValue {
     public FSObjectKey key;
@@ -11,7 +15,7 @@ public class FSKeyValue {
 
     @Override
     public String toString() {
-        return  "\tkey=" + key +
+        return "\tkey=" + key +
                 "\n\t\tvalue=" + value + "\n";
     }
 }

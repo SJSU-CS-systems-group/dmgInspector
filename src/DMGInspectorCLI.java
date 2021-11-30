@@ -1,7 +1,6 @@
 import apfs.APFS;
-import apfs.APFSVolume;
+import dmg.DMGInspector;
 import picocli.CommandLine;
-import utils.Tuple;
 import utils.Utils;
 
 import java.io.File;
@@ -119,7 +118,7 @@ public class DMGInspectorCLI implements Runnable {
 
     private void getTempFiles() {
         try {
-            File outputDir = new File("temp/");
+            File outputDir = new File("temp");
             if (outputDir.exists()) {
                 Utils.deleteFolder(outputDir);
             }

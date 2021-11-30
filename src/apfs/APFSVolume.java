@@ -1,18 +1,21 @@
 package apfs;
 
+import apfs.BTreeNode.BTreeNode;
+import apfs.kv.*;
+import apfs.kv.keys.DRECKey;
+import apfs.kv.keys.EXTENTKey;
+import apfs.kv.keys.FSObjectKeyFactory;
+import apfs.kv.values.DRECValue;
+import apfs.kv.values.EXTENTValue;
 import utils.Tuple;
 import utils.Utils;
 
 import java.io.File;
 import java.io.IOException;
-import java.io.RandomAccessFile;
 import java.nio.ByteBuffer;
 import java.nio.ByteOrder;
-import java.nio.charset.Charset;
-import java.nio.charset.StandardCharsets;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
-import java.util.Arrays;
 import java.util.HashMap;
 
 public class APFSVolume {
@@ -146,7 +149,7 @@ public class APFSVolume {
         files = getFiles();
     }
 
-    public void extractFile(int fileId) throws IOException{
+    public void extractFile(int fileId) throws IOException {
         Tuple<String, EXTENTValue> fileToExtract = files.get(fileId);
         EXTENTValue fileExtent = fileToExtract.y;
         File file = new File(fileToExtract.x);
@@ -154,8 +157,8 @@ public class APFSVolume {
         Utils.extentRangeToFile(imagePath, filePath, fileExtent.physBlockNum * blockSize, fileExtent.length);
     }
 
-    public void extractAllFiles() throws  IOException{
-        for (Tuple<String, EXTENTValue> fileToExtract: files) {
+    public void extractAllFiles() throws IOException {
+        for (Tuple<String, EXTENTValue> fileToExtract : files) {
             EXTENTValue fileExtent = fileToExtract.y;
             Utils.extentRangeToFile(imagePath, fileToExtract.x, fileExtent.physBlockNum * blockSize, fileExtent.length);
         }
