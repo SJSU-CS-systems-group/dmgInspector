@@ -29,25 +29,25 @@ public class DMGInspectorCLI implements Runnable {
     APFS apfs;
     DMGInspector dmgInspector;
 
-    @CommandLine.Option(names = {"-p", "--path"}, required = true, description = "path of the dmg file")
+    @CommandLine.Option(names = {"-p", "--path"}, required = true, description = "Path of the dmg file.")
     String path;
 
-    @CommandLine.Option(names = {"--volumes"}, description = "print all the volumes in the APFS Structure")
+    @CommandLine.Option(names = {"--volumes"}, description = "Print all the volumes in the APFS Structure.")
     Boolean vols;
 
-    @CommandLine.Option(names = {"--extractAll"}, description = "Extract all the files in the Volume")
+    @CommandLine.Option(names = {"--extractAll"}, description = "Extract all the files in the Volume.")
     Boolean extractAll;
 
-    @CommandLine.Option(names = {"--files"}, description = "Show all files")
+    @CommandLine.Option(names = {"--files"}, description = "Show all files.")
     Boolean show;
 
-    @CommandLine.Option(names = "--extract", description = "Extract one file")
+    @CommandLine.Option(names = "--extract", description = "Extract one file.")
     Integer fileId;
 
-    @CommandLine.Option(names = "--objects", description = "Show all the FS Objects in APFS Volume")
+    @CommandLine.Option(names = "--objects", description = "Show all the FS Objects in APFS Volume.")
     Boolean fsObjs;
 
-    @CommandLine.Option(names = "--partitions", description = "Show the partitions of the DMG Image")
+    @CommandLine.Option(names = "--partitions", description = "Show the partitions of the DMG Image.")
     Boolean partitions;
 
 
