@@ -1,8 +1,8 @@
 
 
-# dmg.DMGInspector CLI
+# DMGInspector CLI
 
-dmg.DMGInspector is a Java-based command line interface for inspecting data structures and extracting files from a DMG file’s underlying APFS image. 
+DMGInspector is a Java-based command line interface for inspecting data structures and extracting files from a DMG file’s underlying APFS image. 
 
 
 ## I. Key Features
@@ -101,7 +101,7 @@ Implementation
    </td>
   </tr>
   <tr>
-   <td>dmg.DMGInspector
+   <td>DMGInspector
    </td>
    <td>The central class for parsing a DMG file at a specified file path. It parses and stores instances of the DMG’s…
 <ol>
@@ -119,7 +119,7 @@ This class parses the KOLY block first to obtain offsets & lengths of…
 <li>The DMG’s plist bytes
 
 <p>
-These are used to parse the DMG’s dmg.Plist.
+These are used to parse the DMG’s Plist.
 </li>
 </ol>
 </li>
@@ -127,7 +127,7 @@ These are used to parse the DMG’s dmg.Plist.
    </td>
   </tr>
   <tr>
-   <td>dmg.DMGKolyBlock
+   <td>DMGKolyBlock
    </td>
    <td>This class parses a DMG’s KOLY block, which is a trailer containing data such as…
 <ol>
@@ -140,7 +140,7 @@ These are used to parse the DMG’s dmg.Plist.
    </td>
   </tr>
   <tr>
-   <td>dmg.Plist
+   <td>Plist
    </td>
    <td>This class extracts a DMG’s partitions listed by its plist XML structure. These partitions are obtained through the following steps…
 <ol>
@@ -163,13 +163,13 @@ These are used to parse the DMG’s dmg.Plist.
    </td>
   </tr>
   <tr>
-   <td>dmg.MishBlock
+   <td>MishBlock
    </td>
    <td>Parses a “mish” block structure from provided plist &lt;Data> bytes. Alongside many other fields, it contains a list of “blkx” chunks.
    </td>
   </tr>
   <tr>
-   <td>dmg.MishBlock.BLKXChunkEntry
+   <td>MishBlock.BLKXChunkEntry
    </td>
    <td>Nested class that parses “blkx” chunks, which provide compressed byte offsets and lengths.
    </td>
